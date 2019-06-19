@@ -6,6 +6,6 @@ We can explain our decisions by commonly utilizing some lower-order concepts ass
 
 This repository aims to generate such web of concepts. 
 
-All codes are in the developments, and can be changed any time. 
+All codes are in development, and can be changed any time. 
 
 
