@@ -5,6 +5,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
+from noname import *
+
+internal={}
 
 
 class Net(nn.Module):
@@ -50,8 +53,19 @@ def test(args, model, device, test_loader,hookF):
             test_loss += F.nll_loss(output, target, reduction='sum').item() # sum up batch loss
             pred = output.argmax(dim=1, keepdim=True) # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
-            for hook in hookF:
-                print (hook.output.size())
+            for h, hook in enumerate(hookF):
+                a_int=hook.output
+                a_size=a_int.size()
+                a_int=a_int.view(a_size[0],-1)
+                a_size=a_int.size()
+                if h not in internal:
+                    internal[h]=CogMem_torch(a_size[1],0.8)
+                for ii in range(a_size[0]):
+                    print (h,ii)
+                    internal[h].Test_batch(a_int[ii,:])
+                
+                 
+                
 
     test_loss /= len(test_loader.dataset)
 
@@ -122,7 +136,6 @@ def main():
     torch.manual_seed(args.seed)
 
     device = torch.device("cuda" if use_cuda else "cpu")
-
     kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
     train_loader = torch.utils.data.DataLoader(
         datasets.MNIST('../data', train=True, download=True,
@@ -139,25 +152,23 @@ def main():
         batch_size=args.test_batch_size, shuffle=True, **kwargs)
 
     model=Net()
-    checkpoint = torch.load('mnist_cnn.pt')
+    checkpoint = torch.load('mnist_cnn.pt',map_location=lambda storage, loc: storage)
     model.load_state_dict(checkpoint)
     
     model.to(device)
     
-    optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
+    #optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
 
 
     hookF=[Hook(layer [1]) for layer in list(model._modules.items())]
-
-    for epoch in range(1, args.epochs + 1):
-        #train(args, model, device, train_loader, optimizer, epoch)
-        test(args, model, device, test_loader, hookF)
-
+    test(args, model, device, test_loader, hookF)
+    for i in internal:
+        print (i, internal[i].wm.size())
     #for hook in hookF:
     #    print (hook.output.size())
 
-    if (args.save_model):
-        torch.save(model.state_dict(),"mnist_cnn.pt")
+    #for xin in model._modules.items():
+    #    print ((xin[1]).in_channels)
         
 if __name__ == '__main__':
     main()
