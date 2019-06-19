@@ -101,7 +101,7 @@ def main():
                         help='input batch size for training (default: 64)')
     parser.add_argument('--test-batch-size', type=int, default=10000, metavar='N',
                         help='input batch size for testing (default: 1000)')
-    parser.add_argument('--epochs', type=int, default=10, metavar='N',
+    parser.add_argument('--epochs', type=int, default=1, metavar='N',
                         help='number of epochs to train (default: 10)')
     parser.add_argument('--lr', type=float, default=0.01, metavar='LR',
                         help='learning rate (default: 0.01)')
@@ -138,15 +138,19 @@ def main():
                        ])),
         batch_size=args.test_batch_size, shuffle=True, **kwargs)
 
-
-    model = Net().to(device)
+    model=Net()
+    checkpoint = torch.load('mnist_cnn.pt')
+    model.load_state_dict(checkpoint)
+    
+    model.to(device)
+    
     optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
 
 
     hookF=[Hook(layer [1]) for layer in list(model._modules.items())]
 
     for epoch in range(1, args.epochs + 1):
-        train(args, model, device, train_loader, optimizer, epoch)
+        #train(args, model, device, train_loader, optimizer, epoch)
         test(args, model, device, test_loader, hookF)
 
     #for hook in hookF:
