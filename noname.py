@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import json
 import torch
@@ -84,12 +85,12 @@ class CogMem_numpy:
             if np.amax(temp)<self.threshold:
                 self.wm=np.vstack((self.wm,roV))
         else:    
-            print 'temp',temp
+            
             max_vec=np.amax(temp,axis=0)
-            print 'max_vec',max_vec
+            
             idx=np.where(max_vec<self.threshold)[0]
             sel_vecs=roV[idx,:]
-            print idx
+            
             self.wm=np.vstack((self.wm,sel_vecs))
 
 class CogMem_torch:
@@ -199,7 +200,7 @@ class CogMem_label_torch:
     def Test_batch(self,roV, label=None):
         size=roV.size()
         self.label=label
-        print size
+        
         flag_single=False
         if len(size)==1:
             roV=roV.view(-1,self.inS)
