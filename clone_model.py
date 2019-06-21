@@ -163,7 +163,7 @@ def main():
     hookF=[Hook(layer [1]) for layer in list(model._modules.items())]
     test(args, model, device, test_loader, hookF)
     for i in internal:
-        print (i, internal[i].wm.size())
+        print (i, internal[i].wm.size(),len(internal[i].labels_))
     #for hook in hookF:
     #    print (hook.output.size())
 
