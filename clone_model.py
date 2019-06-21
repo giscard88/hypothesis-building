@@ -62,7 +62,7 @@ def test(args, model, device, test_loader,hookF):
                     internal[h]=CogMem_torch(a_size[1],0.8)
                 for ii in range(a_size[0]):
                     print (h,ii)
-                    internal[h].Test_batch(a_int[ii,:])
+                    internal[h].Test_batch(a_int[ii,:], target[ii])
                 
                  
                 
