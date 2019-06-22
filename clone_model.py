@@ -6,6 +6,8 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torchvision import datasets, transforms
 from noname import *
+import numpy as np
+import json
 
 internal={}
 
@@ -62,7 +64,7 @@ def test(args, model, device, test_loader,hookF):
                     internal[h]=CogMem_torch(a_size[1],0.8)
                 for ii in range(a_size[0]):
                     print (h,ii)
-                    internal[h].Test_batch(a_int[ii,:], target[ii])
+                    internal[h].Test_batch(a_int[ii,:], target[ii].item())
                 
                  
                 
@@ -164,6 +166,10 @@ def main():
     test(args, model, device, test_loader, hookF)
     for i in internal:
         print (i, internal[i].wm.size(),len(internal[i].labels_))
+        torch.save(internal[i].wm,'wm_'+str(i)+'.pt')
+        fp=open('labels_'+str(i)+'.json','w')
+        json.dump(internal[i].labels_,fp)
+        fp.close()
     #for hook in hookF:
     #    print (hook.output.size())
 
