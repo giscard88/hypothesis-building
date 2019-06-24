@@ -298,8 +298,8 @@ class CogMem_label_torch:
 class CogMem_load:
     def __init__(self,wm, labels_):
         self.wm=wm
-        self.labels=torch.Tensor(labels)
-    def foward(roV)
+        self.labels=torch.Tensor(labels_)
+    def foward(self, roV):
         size=roV.size()
         flag_single=False
         if len(size)==1:
@@ -311,7 +311,7 @@ class CogMem_load:
             norm=torch.norm(roV, dim=1)
             for xin in range(size[0]):
                 roV[xin,:]=roV[xin,:]/(norm[xin]+np.finfo(float).eps)
-        self.Projection(roV,flag)
+        self.Projection(roV,flag_single)
 
     def Projection(self, roV, flag):
   
@@ -320,10 +320,10 @@ class CogMem_load:
         else:
 
             roV_T=torch.transpose(roV,0,1)
-
+        print (self.wm.size(),roV_T.size())
         self.image=torch.matmul(self.wm,roV_T)
         self.ma=torch.argmax(self.image,dim=0)
-        self.pred=self.labels(self.ma)
+        self.pred=self.labels[self.ma]
 
    
 
