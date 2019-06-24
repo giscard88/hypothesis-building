@@ -61,7 +61,8 @@ def test(args, model, device, test_loader,hookF):
                 a_int=a_int.view(a_size[0],-1)
                 a_size=a_int.size()
                 if h not in internal:
-                    internal[h]=CogMem_torch(a_size[1],0.8)
+                    threshold=0.65+0.05*float(h)
+                    internal[h]=CogMem_torch(a_size[1],threshold)
                 for ii in range(a_size[0]):
                     print (h,ii)
                     internal[h].Test_batch(a_int[ii,:], target[ii].item())
@@ -113,8 +114,8 @@ class Hook():
 def main():
     # Training settings
     parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
-    parser.add_argument('--batch-size', type=int, default=64, metavar='N',
-                        help='input batch size for training (default: 64)')
+    parser.add_argument('--batch-size', type=int, default=60000, metavar='N',
+                        help='input batch size for training (default: 60000)')
     parser.add_argument('--test-batch-size', type=int, default=10000, metavar='N',
                         help='input batch size for testing (default: 1000)')
     parser.add_argument('--epochs', type=int, default=1, metavar='N',
@@ -145,13 +146,13 @@ def main():
                            transforms.ToTensor(),
                            transforms.Normalize((0.1307,), (0.3081,))
                        ])),
-        batch_size=args.batch_size, shuffle=True, **kwargs)
+        batch_size=args.batch_size, shuffle=False, **kwargs)
     test_loader = torch.utils.data.DataLoader(
         datasets.MNIST('../data', train=False, transform=transforms.Compose([
                            transforms.ToTensor(),
                            transforms.Normalize((0.1307,), (0.3081,))
                        ])),
-        batch_size=args.test_batch_size, shuffle=True, **kwargs)
+        batch_size=args.test_batch_size, shuffle=False, **kwargs)
 
     model=Net()
     checkpoint = torch.load('mnist_cnn.pt',map_location=lambda storage, loc: storage)
@@ -163,7 +164,7 @@ def main():
 
 
     hookF=[Hook(layer [1]) for layer in list(model._modules.items())]
-    test(args, model, device, test_loader, hookF)
+    test(args, model, device, train_loader, hookF)
     for i in internal:
         print (i, internal[i].wm.size(),len(internal[i].labels_))
         torch.save(internal[i].wm,'wm_'+str(i)+'.pt')

@@ -294,6 +294,42 @@ class CogMem_label_torch:
 
         self.image=torch.matmul(self.wm,roV_T)
 
+
+class CogMem_load:
+    def __init__(self,wm, labels_):
+        self.wm=wm
+        self.labels=torch.Tensor(labels)
+    def foward(roV)
+        size=roV.size()
+        flag_single=False
+        if len(size)==1:
+            roV=roV.view(-1,self.inS)
+            norm=torch.norm(roV)
+            roV=roV/(norm+np.finfo(float).eps)
+            flag_single=True   
+        else:
+            norm=torch.norm(roV, dim=1)
+            for xin in range(size[0]):
+                roV[xin,:]=roV[xin,:]/(norm[xin]+np.finfo(float).eps)
+        self.Projection(roV,flag)
+
+    def Projection(self, roV, flag):
+  
+        if flag:
+            roV_T=torch.transpose(roV,-1,0)
+        else:
+
+            roV_T=torch.transpose(roV,0,1)
+
+        self.image=torch.matmul(self.wm,roV_T)
+        self.ma=torch.argmax(self.image,dim=0)
+        self.pred=self.labels(self.ma)
+
+   
+
+     
+            
+
 '''
 mem=CogMem_torch(5,0.9)
 a=np.random.rand(5,5)
