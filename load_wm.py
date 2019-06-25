@@ -74,6 +74,7 @@ def test(args, model, device, test_loader,hookF):
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
+    
 
 class Hook():
     def __init__(self, module):
@@ -124,6 +125,7 @@ def main():
                        ])),
         batch_size=10000, shuffle=False, **kwargs)
     model=Net()
+    model.to(device)
     checkpoint = torch.load('mnist_cnn.pt',map_location=lambda storage, loc: storage)
     model.load_state_dict(checkpoint)
 
@@ -132,16 +134,22 @@ def main():
     hookF=[Hook(layer [1]) for layer in list(model._modules.items())]
     test(args, model, device, test_loader, hookF)
     data_wm=[]
-    for xin in [2]:
-        wm=torch.load('wm_'+str(xin)+'.pt',map_location=lambda storage, loc: storage)
+    for xin in [0,1,2,3]:
+        wm=torch.load('wm_'+str(xin)+'.pt') #,map_location=lambda storage, loc: storage)
         data_wm.append(wm)
         fp=open('labels_'+str(xin)+'.json')
         label=json.load(fp)
         fp.close()
         cog=CogMem_load(wm,label)
-    roV=intermediate_output[2]
-    cog.foward(roV)
-    print (cog.pred)
+        roV=intermediate_output[xin]
+        cog.foward(roV)
+        pred=cog.pred.long()
+        print (pred)
+        for data, target in test_loader:
+            print (target)
+            a=pred.eq(target.view_as(pred)).sum().item()    
+        
+        print (xin, a)
 
 if __name__ == '__main__':
     main()
