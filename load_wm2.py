@@ -8,10 +8,14 @@ from torchvision import datasets, transforms
 from noname import *
 import numpy as np
 import json
+import pylab
+from numpy import linalg as LA
+
 
 internal={}
 
 intermediate_output={}
+labels_=[]
 
 
 class Net(nn.Module):
@@ -57,7 +61,7 @@ def test(args, model, device, test_loader,hookF):
             test_loss += F.nll_loss(output, target, reduction='sum').item() # sum up batch loss
             pred = output.argmax(dim=1, keepdim=True) # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
-            labels=target
+
             for h, hook in enumerate(hookF):
                 a_int=hook.output
                 a_size=a_int.size()
@@ -87,24 +91,28 @@ class Hook():
         self.hook.remove()
 
 class make_association:
-    def __init__(self, pre, post,class_n=10):
+    def __init__(self, pre, post,device,class_n=10):
         self.pre=pre
         self.post=post
         self.pre_n, self.inst_n=pre.size()
         self.pos_n=class_n
+        self.device=device
         #self.map=np.zeros((self.pos_n,self.pre_n))
         self.convert()
         self.evolve()
 
     def convert(self):
-        self.target_m=np.ones((self.inst_n,self.class_n))*-1.0
-        
+        self.target_m=np.ones((self.inst_n,self.pos_n))*-1.0
+
         for xin in range(self.inst_n):
-            self.target[xin,self.post[xin]]=1.0
-        self.target_m=torch.from_numpy(self.target_m)
-         
+
+            self.target_m[xin,int(self.post[xin].item())]=1.0
+        self.target_m=torch.from_numpy(self.target_m).to(self.device)
+       
         
     def evolve(self):
+        
+        self.target_m=self.target_m.float() # it seems that numpy.ones has dtype=double.
         delta=torch.matmul(self.pre,self.target_m)
         self.map=delta    
             
@@ -115,7 +123,7 @@ class make_association:
 
 def main():
     data=[]
-    labels=[]
+    
 
     parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
     parser.add_argument('--batch-size', type=int, default=60000, metavar='N',
@@ -151,35 +159,44 @@ def main():
                            transforms.Normalize((0.1307,), (0.3081,))
                        ])),
         batch_size=10000, shuffle=False, **kwargs)
+
     model=Net()
     model.to(device)
-    checkpoint = torch.load('mnist_cnn.pt',map_location=lambda storage, loc: storage)
+    checkpoint = torch.load('mnist_cnn.pt') #,map_location=lambda storage, loc: storage)
     model.load_state_dict(checkpoint)
 
 
     
     hookF=[Hook(layer [1]) for layer in list(model._modules.items())]
     test(args, model, device, test_loader, hookF)
+
     data_wm=[]
     Associations=[]
-    for xin in [0,1,2,3]:
-        wm=torch.load('wm_'+str(xin)+'.pt',map_location=lambda storage, loc: storage)
+    for xin in [3]:
+        wm=torch.load('wm_'+str(xin)+'.pt') #,map_location=lambda storage, loc: storage)
         data_wm.append(wm)
         fp=open('labels_'+str(xin)+'.json')
         label=json.load(fp)
         fp.close()
         cog=CogMem_load(wm,label)
         roV=intermediate_output[xin]
+        for data, target in test_loader:
+            labels_=target
         cog.foward(roV)
-        temp=make_association(cog.image,cog.labels)
+        temp=make_association(cog.image,labels_,device)
+        print (temp.map.size())
         Associations.append(temp)
         pred=cog.pred.long()
-        print (pred)
+        #print (pred)
         for data, target in test_loader:
-            print (target)
+            #print (target)
             a=pred.eq(target.view_as(pred)).sum().item()    
         
         print (xin, a)
+    temp_d=temp.map.cpu().numpy()
+    for xin in range(10):
+        for yin in range(10):
+            print (xin,yin,np.dot(temp_d[:,xin],temp_d[:,yin])/(LA.norm(temp_d[:,xin])*LA.norm(temp_d[:,yin])))
 
 if __name__ == '__main__':
     main()
