@@ -176,7 +176,7 @@ def main():
 
     model=Net()
     model.to(device)
-    checkpoint = torch.load('mnist_cnn.pt',map_location=lambda storage, loc: storage)
+    checkpoint = torch.load('mnist_cnn.pt')# ,map_location=lambda storage, loc: storage)
     model.load_state_dict(checkpoint)
 
 
@@ -187,7 +187,7 @@ def main():
     data_wm=[]
     Associations=[]
     for xin in [3]:
-        wm=torch.load('wm_'+str(xin)+'.pt',map_location=lambda storage, loc: storage)
+        wm=torch.load('wm_'+str(xin)+'.pt') #,map_location=lambda storage, loc: storage)
         data_wm.append(wm)
         fp=open('labels_'+str(xin)+'.json') # labels for wm i.e., the labels of the test set.
         label=json.load(fp)
@@ -220,7 +220,7 @@ def main():
         cls=xin.item()
         
         v2=cog.image[:,xi]
-        for yin in [cls]:
+        for yin in range(10):
             v1=act_map[:,yin]
             print (cls,yin)
             print (torch.dot(v1,v2)/(v1.norm()*v2.norm()))
@@ -241,5 +241,5 @@ def main():
 
 if __name__ == '__main__':
     main()
-
+    del intermediate_output
 

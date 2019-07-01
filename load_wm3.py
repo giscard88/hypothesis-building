@@ -17,6 +17,8 @@ internal={}
 intermediate_output={}
 labels_=[]
 
+    
+
 
 class Net(nn.Module):
     def __init__(self):
@@ -146,7 +148,7 @@ class make_association:
 
 def main():
     data=[]
-    
+    torch.cuda.empty_cache() 
 
     parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
     parser.add_argument('--batch-size', type=int, default=60000, metavar='N',
@@ -192,7 +194,7 @@ def main():
 
     model=Net()
     model.to(device)
-    checkpoint = torch.load('mnist_cnn.pt',map_location=lambda storage, loc: storage)
+    checkpoint = torch.load('mnist_cnn.pt') #,map_location=lambda storage, loc: storage)
     model.load_state_dict(checkpoint)
 
 
@@ -203,7 +205,7 @@ def main():
     data_wm=[]
     Associations=[]
     for xin in [3]:
-        wm=torch.load('wm_'+str(xin)+'.pt',map_location=lambda storage, loc: storage)
+        wm=torch.load('wm_'+str(xin)+'.pt') #,map_location=lambda storage, loc: storage)
         data_wm.append(wm)
         fp=open('labels_'+str(xin)+'.json') # labels for wm i.e., the labels of the test set.
         label=json.load(fp)
@@ -226,6 +228,9 @@ def main():
 
     correlations=np.zeros((10,10))
 
+    #intermediate_output={}
+    torch.cuda.empty_cache() 
+ 
     #act_map=act_map.numpy()
     test(args, model, device, test_loader, hookF)
     #correlations=np.zeros((10,10))
@@ -240,12 +245,12 @@ def main():
         cls=xin.item()
         
         v2=cog.image[:,xi]
-        for yin in [cls]:
+        for yin in range(10):
             v1=act_map[:,yin]
             print (cls,yin)
             print (torch.dot(v1,v2)/(v1.norm()*v2.norm()))
             #print (v2[:10])
-
+   
     
     #print (cog.image.size())
     #print (cog.image[:10,1]) 
@@ -253,8 +258,9 @@ def main():
     #       correlations[xin,yin]=correlations[xin,yin]+torch.dot(v1,v2)
     #correlations=correlations
     #np.savetxt('test.txt',correlations)
-
-           
+    #del intermediate_output
+    torch.cuda.empty_cache() 
+    del cog, roV           
         
         
       
@@ -263,5 +269,5 @@ def main():
 
 if __name__ == '__main__':
     main()
-
+    del intermediate_output
 
