@@ -10,7 +10,7 @@ import numpy as np
 import json
 import pylab
 from numpy import linalg as LA
-
+from collections import defaultdict
 
 internal={}
 
@@ -81,6 +81,7 @@ def test(args, model, device, test_loader,hookF):
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
+
     return pred
     
 
@@ -105,7 +106,7 @@ class make_association:
         self.Evolve()
 
     def Convert(self):
-        self.target_m=np.ones((self.inst_n,self.pos_n))*-1.0
+        self.target_m=np.ones((self.inst_n,self.pos_n))*0.0
 
         for xin in range(self.inst_n):
 
@@ -118,12 +119,11 @@ class make_association:
         
         self.target_m=self.target_m.float() # it seems that numpy.ones has dtype=double.
         self.pre=self.pre-1
-        self.pre=self.pre/0.01
+        self.pre=self.pre/0.1
         self.pre=self.pre.exp()
         
         delta=torch.matmul(self.pre,self.target_m)
         self.map=delta
-
     
     '''
     def Evolve(self):
@@ -199,35 +199,138 @@ def main():
     checkpoint = torch.load('mnist_cnn.pt',map_location=lambda storage, loc: storage)
     model.load_state_dict(checkpoint)
 
+    layer_sel=3
+    Associations=[]
+    for xin in range(4):
+        temp=torch.load('map_association_'+str(xin)+'.pt')
+        Associations.append(temp)
+    sel=Associations[layer_sel]
+    sel=sel.numpy()
+    #pylab.figure(1)
+    
+
+    freq_dict={}
+    to_number=defaultdict(list)
+    for xin in range(10):
+        data=sel[:,xin]
+        data_sort=np.sort(data)
+        arg_sort=np.argsort(data)
+
+        data_sort=np.flip(data_sort,0)
+        arg_sort=np.flip(arg_sort,0)
+
+        #pylab.plot(data_sort[:20],label=xin)
+        
+        for yin in arg_sort[:20]:
+            if yin not in freq_dict:
+                freq_dict[yin]=1
+                to_number[yin].append(xin)
+            else:
+                freq_dict[yin]=freq_dict[yin]+1
+                to_number[yin].append(xin)
+
+    exclusive=defaultdict(list)
+    for xin in freq_dict:
+        freq=freq_dict[xin]
+        if freq>1:
+            print (xin, to_number[xin])
+        else:
+            num=to_number[xin][0]
+            #print (num)
+            exclusive[num].append(xin)
+    print ('now exclusive units')
+    for xin in exclusive:
+        print (xin, len(exclusive[xin])) 
+
+    hookF=[Hook(layer [1]) for layer in list(model._modules.items())]
 
     
-    hookF=[Hook(layer [1]) for layer in list(model._modules.items())]
-    pred_n=test(args, model, device, train_loader, hookF)
-    pred_n=pred_n.numpy()
+    # Let's test how this association is predictive of the test set
+
+    
     data_wm=[]
-    Associations=[]
-    for xin in range(len(hookF)):
+    for xin in [layer_sel]:
         wm=torch.load('wm_'+str(xin)+'.pt',map_location=lambda storage, loc: storage)
         data_wm.append(wm)
         fp=open('labels_'+str(xin)+'.json') # labels for wm i.e., the labels of the test set.
         label=json.load(fp)
         fp.close()
         cog=CogMem_load(wm,label) 
-        roV=intermediate_output[xin]
-        for data, target in train_loader:
-            labels_=target
-        cog.foward(roV) # estimate the images of train set to make associations
-        temp=make_association(cog.image,pred_n,device)
-        print (temp.map.size())
-        Associations.append(temp.map)
-        
-    for xin in range(len(hookF)):
-        data=Associations[xin]
-        torch.save(data,'map_association_'+str(xin)+'.pt')
-        
-          
+
     
+    
+    act_map=Associations[layer_sel]
+
+
+
+
+    pred_n=test(args, model, device, test_loader, hookF)
+
+    roV=intermediate_output[layer_sel]
+    for data, target in test_loader:
+        labels_=target
+        cog.foward(roV)
+        pred=cog.pred.long()
+    #pred=cog.pred.long().cpu().numpy()
+
+
+    
+
+
+    
+
+    total_1=0
+    total_2=0
+    total_3=0
+    total_4=0
+    total_5=0 
+
+    temp=0
+    print ('sel shape',sel.shape)
+    print (cog.image.size())       
+    for xi, xin in enumerate(pred_n):
+        cls=xin.item()
+        label_t=labels_[xi].long().item()
+        v2=cog.image[:,xi]
         
+        idx=torch.argmax(v2).item()
+        tar=sel[idx,:]
+        #idx3=cog.labels[idx].long().item()
+        idx2=np.argmax(tar)
+        #print (xi, idx, cls, idx3, idx2)
+        # cls: prediction, idx2: max from association, idx3, label from truth, idx_truth: ground truth
+        if cls==idx2:
+            total_1=total_1+1
+        if label_t==cls:
+            total_2=total_2+1
+
+        if label_t==idx2:
+            total_3=total_3+1
+
+        if label_t!=cls:
+            temp=temp+1
+            if cls==idx2:
+                total_4=total_4+1
+        else:
+            temp=temp+1
+            if cls==idx2:
+                total_5=total_5+1
+       
+   
+    print (total_1,total_2,total_3) 
+           
+            
+        
+
+    torch.cuda.empty_cache() 
+    del cog, roV   
+
+
+
+    
+    
+    
+   
         
       
         
