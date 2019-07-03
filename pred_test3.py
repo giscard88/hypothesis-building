@@ -71,7 +71,7 @@ def test(args, model, device, test_loader,hookF):
                 a_size=a_int.size()
                  
                 
-                intermediate_output[h]=a_int
+                intermediate_output[h]=a_int.cpu()
                 
                  
                 
@@ -194,12 +194,13 @@ def main():
                        ])),
         batch_size=10000, shuffle=False, **kwargs)
 
+    strage=device
     model=Net()
     model.to(device)
     checkpoint = torch.load('mnist_cnn.pt',map_location=lambda storage, loc: storage)
     model.load_state_dict(checkpoint)
 
-    layer_sel=3
+    layer_sel=2
     Associations=[]
     for xin in range(4):
         temp=torch.load('map_association_'+str(xin)+'.pt')
@@ -286,6 +287,7 @@ def main():
     total_5=0 
 
     temp=0
+
     print ('sel shape',sel.shape)
     print (cog.image.size())       
     for xi, xin in enumerate(pred_n):
@@ -293,8 +295,12 @@ def main():
         label_t=labels_[xi].long().item()
         v2=cog.image[:,xi]
         
-        idx=torch.argmax(v2).item()
+        idx=torch.argsort(v2).cpu().numpy()
+        idx=np.flip(idx,0)[:5]
         tar=sel[idx,:]
+        tar=np.sum(tar,0)
+        
+        #tar=sel[idx,:]
         #idx3=cog.labels[idx].long().item()
         idx2=np.argmax(tar)
         #print (xi, idx, cls, idx3, idx2)
