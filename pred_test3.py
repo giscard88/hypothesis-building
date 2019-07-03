@@ -298,11 +298,14 @@ def main():
         idx=torch.argsort(v2).cpu().numpy()
         idx=np.flip(idx,0)[:5]
         tar=sel[idx,:]
-        tar=np.sum(tar,0)
+        temp_v=np.zeros(10)
+        for zin in idx:
+            temp_v=temp_v+sel[zin,:]*v2[zin].item()
+        
         
         #tar=sel[idx,:]
         #idx3=cog.labels[idx].long().item()
-        idx2=np.argmax(tar)
+        idx2=np.argmax(temp_v)
         #print (xi, idx, cls, idx3, idx2)
         # cls: prediction, idx2: max from association, idx3, label from truth, idx_truth: ground truth
         if cls==idx2:
