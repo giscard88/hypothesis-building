@@ -200,7 +200,7 @@ def main():
     checkpoint = torch.load('mnist_cnn.pt',map_location=lambda storage, loc: storage)
     model.load_state_dict(checkpoint)
 
-    layer_sel=0
+    layer_sel=2
     Associations=[]
     for xin in range(4):
         temp=torch.load('map_association_'+str(xin)+'.pt')
@@ -212,6 +212,9 @@ def main():
 
     freq_dict={}
     to_number=defaultdict(list)
+    dim=50
+    r,c=sel.shape
+    sel_filt=np.zeros((r,c))
     for xin in range(10):
         data=sel[:,xin]
         data_sort=np.sort(data)
@@ -222,26 +225,9 @@ def main():
 
         #pylab.plot(data_sort[:20],label=xin)
         
-        for yin in arg_sort[:20]:
-            if yin not in freq_dict:
-                freq_dict[yin]=1
-                to_number[yin].append(xin)
-            else:
-                freq_dict[yin]=freq_dict[yin]+1
-                to_number[yin].append(xin)
-
-    exclusive=defaultdict(list)
-    for xin in freq_dict:
-        freq=freq_dict[xin]
-        if freq>1:
-            print (xin, to_number[xin])
-        else:
-            num=to_number[xin][0]
-            #print (num)
-            exclusive[num].append(xin)
-    print ('now exclusive units')
-    for xin in exclusive:
-        print (xin, len(exclusive[xin])) 
+        sel_filt[arg_sort[:dim],xin]=sel[arg_sort[:dim],xin]
+        
+        
 
     hookF=[Hook(layer [1]) for layer in list(model._modules.items())]
 
@@ -295,18 +281,9 @@ def main():
         label_t=labels_[xi].long().item()
         v2=cog.image[:,xi]
         
-        idx=torch.argsort(v2).cpu().numpy()
-        idx=np.flip(idx,0)[:10]
-        tar=sel[idx,:]
-        temp_v=np.zeros(10)
-        for zin in idx:
-            val=np.exp((v2[zin]-1.0)/0.01)
-            temp_v=temp_v+sel[zin,:]*val.item()
-        
-        
-        #tar=sel[idx,:]
-        #idx3=cog.labels[idx].long().item()
-        idx2=np.argmax(temp_v)
+        v2=v2.reshape(1,r)
+        vectors=np.matmul(v2,sel_filt)
+        idx2=np.argmax(vectors)
         #print (xi, idx, cls, idx3, idx2)
         # cls: prediction, idx2: max from association, idx3, label from truth, idx_truth: ground truth
         if cls==idx2:

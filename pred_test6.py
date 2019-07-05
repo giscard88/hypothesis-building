@@ -200,7 +200,7 @@ def main():
     checkpoint = torch.load('mnist_cnn.pt',map_location=lambda storage, loc: storage)
     model.load_state_dict(checkpoint)
 
-    layer_sel=0
+    layer_sel=2
     Associations=[]
     for xin in range(4):
         temp=torch.load('map_association_'+str(xin)+'.pt')
@@ -285,7 +285,8 @@ def main():
     total_3=0
     total_4=0
     total_5=0 
-
+    cons1=0
+    cons2=0
     temp=0
 
     print ('sel shape',sel.shape)
@@ -296,17 +297,18 @@ def main():
         v2=cog.image[:,xi]
         
         idx=torch.argsort(v2).cpu().numpy()
-        idx=np.flip(idx,0)[:10]
+        idx=np.flip(idx,0)[:5]
         tar=sel[idx,:]
         temp_v=np.zeros(10)
         for zin in idx:
-            val=np.exp((v2[zin]-1.0)/0.01)
-            temp_v=temp_v+sel[zin,:]*val.item()
+            temp_v=temp_v+sel[zin,:]*v2[zin].item()
         
         
         #tar=sel[idx,:]
         #idx3=cog.labels[idx].long().item()
         idx2=np.argmax(temp_v)
+        idx3=np.argsort(temp_v)
+        idx3=np.flip(idx3,0)[:3]
         #print (xi, idx, cls, idx3, idx2)
         # cls: prediction, idx2: max from association, idx3, label from truth, idx_truth: ground truth
         if cls==idx2:
@@ -326,8 +328,13 @@ def main():
             if cls==idx2:
                 total_5=total_5+1
        
-   
-    print (total_1,total_2,total_3) 
+        if cls in idx3:
+            cons1=cons1+1
+        if label_t in idx3:
+            cons2=cons2+1
+             
+    print (total_1,total_2,total_3)
+    print ('cons1',cons1,'cons2',cons2) 
            
             
         
