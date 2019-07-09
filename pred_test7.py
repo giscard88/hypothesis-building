@@ -289,21 +289,23 @@ def main():
     cons2=0
     temp=0
     corr=np.zeros((10,10))
+    mem=[]
     print ('sel shape',sel.shape)
     print (cog.image.size())       
     for xi, xin in enumerate(pred_n):
         cls=xin.item()
         label_t=labels_[xi].long().item()
         v2=cog.image[:,xi]
-        
+       
         idx=torch.argsort(v2).cpu().numpy()
+        mem.append(v2[idx[-1]].item())
         idx=np.flip(idx,0)[:3]
         tar=sel[idx,:]
         temp_v=np.zeros(10)
         for zin in idx:
             temp_v=temp_v+sel[zin,:]*v2[zin].item()
         
-        print (temp_v)
+        #print (temp_v)
         #tar=sel[idx,:]
         #idx3=cog.labels[idx].long().item()
         idx2=np.argmax(temp_v)
@@ -343,12 +345,13 @@ def main():
     #corr=corr/500.0         
     print (total_1,total_2,total_3)
     print ('cons1',cons1,'cons2',cons2)
-    pylab.imshow(corr,cmap='jet', vmax=150.0)
+    pylab.imshow(corr,cmap='jet', vmax=125.0)
     pylab.colorbar() 
            
             
         
-
+    mem=np.array(mem)
+    print (np.mean(mem),np.std(mem),np.amin(mem))
     torch.cuda.empty_cache() 
     del cog, roV
     pylab.savefig('L'+str(layer_sel)+'.png')   
