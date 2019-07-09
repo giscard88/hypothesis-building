@@ -200,7 +200,7 @@ def main():
     checkpoint = torch.load('mnist_cnn.pt',map_location=lambda storage, loc: storage)
     model.load_state_dict(checkpoint)
 
-    layer_sel=2
+    layer_sel=0
     Associations=[]
     for xin in range(4):
         temp=torch.load('map_association_'+str(xin)+'.pt')
@@ -288,7 +288,7 @@ def main():
     cons1=0
     cons2=0
     temp=0
-
+    corr=np.zeros((10,10))
     print ('sel shape',sel.shape)
     print (cog.image.size())       
     for xi, xin in enumerate(pred_n):
@@ -332,16 +332,26 @@ def main():
             cons1=cons1+1
         if label_t in idx3:
             cons2=cons2+1
-             
+        for c1 in idx3:
+            if c1==cls:
+                for c2 in idx3:
+                    if c1!=c2:
+                        corr[c1,c2]=corr[c1,c2]+1.0 #(temp_v[c2]-temp_v[c1])/(temp_v[c2]+temp_v[c1])
+
+    max_v=np.amax(corr)
+    #corr=corr/500.0         
     print (total_1,total_2,total_3)
-    print ('cons1',cons1,'cons2',cons2) 
+    print ('cons1',cons1,'cons2',cons2)
+    pylab.imshow(corr,cmap='jet') #, vmax=1500.0)
+    pylab.colorbar() 
            
             
         
 
     torch.cuda.empty_cache() 
-    del cog, roV   
-
+    del cog, roV
+    pylab.savefig('L'+str(layer_sel)+'.png')   
+    pylab.show()
 
 
     
