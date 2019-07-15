@@ -204,7 +204,7 @@ def main():
                            transforms.ToTensor(),
                            transforms.Normalize((0.1307,), (0.3081,))
                        ])),
-        batch_size=5, shuffle=False, **kwargs)
+        batch_size=1, shuffle=False, **kwargs)
 
     strage=device
     model=Net()
@@ -212,7 +212,7 @@ def main():
     checkpoint = torch.load('mnist_cnn.pt',map_location=lambda storage, loc: storage)
     model.load_state_dict(checkpoint)
 
-    layer_sel=2
+    layer_sel=3
     Associations=[]
     for xin in range(4):
         temp=torch.load('map_association_'+str(xin)+'.pt')
@@ -244,7 +244,7 @@ def main():
     act_map=Associations[layer_sel]
 
     adversary = LinfPGDAttack(
-    model, loss_fn=nn.CrossEntropyLoss(reduction="sum"), eps=10.0,
+    model, loss_fn=nn.CrossEntropyLoss(reduction="sum"), eps=0.8,
     nb_iter=40, eps_iter=0.01, rand_init=True, clip_min=0.0, clip_max=1.0,
     targeted=False)
 
@@ -254,7 +254,8 @@ def main():
     data=data.to(device)
     labels_=labels_.to(device)
 
-    adv_untargeted = adversary.perturb(data, labels_)
+    #adv_untargeted = adversary.perturb(data, labels_)
+    adv_untargeted=data
     print (adv_untargeted.size())
 
     pred_n=test(args, model, device, test_loader_small, hookF, adv_untargeted)
@@ -293,7 +294,7 @@ def main():
         v2=cog.image[:,xi]
        
         idx=torch.argsort(v2).cpu().numpy()
-        mem.append(v2[idx[-1]].item())
+        mem.append(v2.cpu().numpy())
         idx=np.flip(idx,0)[:3]
         tar=sel[idx,:]
         temp_v=np.zeros(10)
@@ -338,19 +339,31 @@ def main():
 
     max_v=np.amax(corr)
     #corr=corr/500.0         
-    print (total_1,total_2,total_3)
+    print ('pred. of prediction:', total_1,'global pred. of actual class:',total_2,'local pred. of actual class:', total_3)
     print ('cons1',cons1,'cons2',cons2)
-    pylab.imshow(corr,cmap='jet', vmax=125.0)
-    pylab.colorbar() 
+    print (idx3)
            
             
         
     mem=np.array(mem)
-    print (np.mean(mem),np.std(mem),np.amin(mem))
+    
+    data=np.loadtxt('mem_'+str(layer_sel)+'.txt')
+    temp=np.argsort(mem[0])
+    temp=np.flip(temp,0)
+    print ('adv',temp[:3])
+    temp=np.argsort(data[0,:])
+    temp=np.flip(temp,0)
+    print ('clean',temp[:3])
+    diff=data[0,:]-mem[0]
+    #print ('diff',diff)
+    print (np.amax(diff),np.mean(diff),np.std(diff),np.amin(diff))
+    pylab.plot(data[0,:], label='clean')
+    pylab.plot(mem[0], label='adv')
+    pylab.legend() 
+    pylab.show()
+    
     torch.cuda.empty_cache() 
     del cog, roV
-    pylab.savefig('L'+str(layer_sel)+'.png')   
-    pylab.show()
 
 
     
