@@ -194,7 +194,7 @@ def main():
 
     model=Net()
     model.to(device)
-    checkpoint = torch.load('mnist_cnn.pt') #,map_location=lambda storage, loc: storage)
+    checkpoint = torch.load('mnist_cnn.pt',map_location=lambda storage, loc: storage)
     model.load_state_dict(checkpoint)
 
 
@@ -205,7 +205,7 @@ def main():
     data_wm=[]
     Associations=[]
     for xin in [3]:
-        wm=torch.load('wm_'+str(xin)+'.pt') #,map_location=lambda storage, loc: storage)
+        wm=torch.load('wm_'+str(xin)+'.pt',map_location=lambda storage, loc: storage)
         data_wm.append(wm)
         fp=open('labels_'+str(xin)+'.json') # labels for wm i.e., the labels of the test set.
         label=json.load(fp)

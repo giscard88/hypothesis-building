@@ -135,7 +135,7 @@ def main():
     test(args, model, device, test_loader, hookF)
     data_wm=[]
     for xin in [0,1,2,3]:
-        wm=torch.load('wm_'+str(xin)+'.pt') #,map_location=lambda storage, loc: storage)
+        wm=torch.load('wm_'+str(xin)+'.pt',map_location=lambda storage, loc: storage)
         data_wm.append(wm)
         fp=open('labels_'+str(xin)+'.json')
         label=json.load(fp)

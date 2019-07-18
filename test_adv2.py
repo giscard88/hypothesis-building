@@ -204,7 +204,7 @@ def main():
                            transforms.ToTensor(),
                            transforms.Normalize((0.1307,), (0.3081,))
                        ])),
-        batch_size=5, shuffle=False, **kwargs)
+        batch_size=100, shuffle=False, **kwargs)
 
     strage=device
     model=Net()
@@ -212,7 +212,7 @@ def main():
     checkpoint = torch.load('mnist_cnn.pt',map_location=lambda storage, loc: storage)
     model.load_state_dict(checkpoint)
 
-    layer_sel=1
+    layer_sel=2
     Associations=[]
     for xin in range(4):
         temp=torch.load('map_association_'+str(xin)+'.pt')
@@ -299,16 +299,17 @@ def main():
     mem=[]
     print ('sel shape',sel.shape)
     print (cog.image.size())
-    print ('pred',pred.size())       
+    print ('pred',pred.size())
+
+    adv_success=[]       
     for xi, xin in enumerate(pred_n):
         cls=xin.item()
         label_t=labels_[xi].long().item()
         v2=cog.image[:,xi]
        
         idx=torch.argsort(v2).cpu().numpy()
-        idx_mem=hub[cls][:10]
-        #print (idx_mem)
-        mem.append(np.mean(v2.cpu().numpy()[idx_mem]))
+        idx_mem=hub[cls][:5]
+        mem.append(np.dot(v2.cpu().numpy()[idx_mem],sel[idx_mem,xin]))
         idx=np.flip(idx,0)[:3]
         tar=sel[idx,:]
         temp_v=np.zeros(10)
@@ -328,6 +329,8 @@ def main():
             total_1=total_1+1
         if label_t==cls:
             total_2=total_2+1
+        else:
+            adv_success.append(xi)
 
         if label_t==idx2:
             total_3=total_3+1
@@ -361,7 +364,14 @@ def main():
         
     mem=np.array(mem)
     
-    print (mem)
+    data=np.loadtxt('mem_'+str(layer_sel)+'.txt')
+    data=np.array(data)
+    diff=data[:len(mem)]-mem
+    diff=diff[np.array(adv_success)]
+    pylab.plot(diff,label='clean-adv')
+    print (np.mean(diff),len(diff),len(np.where(diff<0)[0]))
+   # pylab.plot(data[:100],label='clean')
+    pylab.show()
     
     
     torch.cuda.empty_cache() 

@@ -245,7 +245,7 @@ def main():
     
     # Let's test how this association is predictive of the test set
 
-    layer_sel=2
+    layer_sel=3
     data_wm=[]
     for xin in [layer_sel]:
         wm=torch.load('wm_'+str(xin)+'.pt',map_location=lambda storage, loc: storage)
@@ -275,10 +275,13 @@ def main():
         cls=xin.item()
         
         v2=cog.image[:,xi]
+        storage=[]
         for yin in range(10):
             v1=act_map[:,yin]
-            print (cls,yin)
-            print (torch.dot(v1,v2)/(v1.norm()*v2.norm()))
+            
+            storage.append(torch.dot(v1,v2)) #/(v1.norm()*v2.norm()))
+        storage=np.array(storage)
+        print (xin, np.argmax(storage))
             #print (v2[:10])
    
     

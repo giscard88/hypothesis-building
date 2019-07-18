@@ -18,8 +18,11 @@ intermediate_output={}
 labels_=[]
 
     
+'''
 
+mapping is averaged activity of layers
 
+'''
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
@@ -71,7 +74,7 @@ def test(args, model, device, test_loader,hookF):
                 a_size=a_int.size()
                  
                 
-                intermediate_output[h]=a_int.cpu()
+                intermediate_output[h]=a_int
                 
                  
                 
@@ -81,8 +84,6 @@ def test(args, model, device, test_loader,hookF):
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
-
-    return pred
     
 
 class Hook():
@@ -101,29 +102,25 @@ class make_association:
         self.pre_n, self.inst_n=pre.size()
         self.pos_n=class_n
         self.device=device
-        #self.map=np.zeros((self.pos_n,self.pre_n))
-        self.Convert()
+        self.models=defaultdict(list)
+
         self.Evolve()
 
-    def Convert(self):
-        self.target_m=np.ones((self.inst_n,self.pos_n))*0.0
 
-        for xin in range(self.inst_n):
 
-            self.target_m[xin,int(self.post[xin].item())]=1.0
-           
-        self.target_m=torch.from_numpy(self.target_m).to(self.device)
-       
-        
     def Evolve(self):
+        self.map=[]
+        for xin in range(self.inst_n):
+            digit=int(self.post[xin].item())
+            self.models[digit].append(self.pre[:,xin].cpu().numpy())
+        print ('test of models',np.array(self.models[1]).shape)
         
-        self.target_m=self.target_m.float() # it seems that numpy.ones has dtype=double.
-        self.pre=self.pre-1
-        self.pre=self.pre/0.1
-        self.pre=self.pre.exp()
-        
-        delta=torch.matmul(self.pre,self.target_m)
-        self.map=delta
+        for xin in range(10):
+            self.map.append(np.mean(np.array(self.models[xin]),axis=0))
+        self.map=np.array(self.map)
+        self.map=self.map.T
+        print ('map size',self.map.shape)
+        self.map=torch.from_numpy(self.map).to(self.device) 
     
     '''
     def Evolve(self):
@@ -194,23 +191,22 @@ def main():
                        ])),
         batch_size=10000, shuffle=False, **kwargs)
 
-    strage=device
     model=Net()
     model.to(device)
     checkpoint = torch.load('mnist_cnn.pt',map_location=lambda storage, loc: storage)
     model.load_state_dict(checkpoint)
 
-    layer_sel=2
+
     Associations=[]
     for xin in range(4):
         temp=torch.load('map_association_'+str(xin)+'.pt')
         Associations.append(temp)
-    sel=Associations[layer_sel]
+    sel=Associations[0]
     sel=sel.numpy()
     #pylab.figure(1)
     
 
-    hub={}
+    freq_dict={}
     to_number=defaultdict(list)
     for xin in range(10):
         data=sel[:,xin]
@@ -222,14 +218,33 @@ def main():
 
         #pylab.plot(data_sort[:20],label=xin)
         
-        hub[xin]=arg_sort
+        for yin in arg_sort[:20]:
+            if yin not in freq_dict:
+                freq_dict[yin]=1
+                to_number[yin].append(xin)
+            else:
+                freq_dict[yin]=freq_dict[yin]+1
+                to_number[yin].append(xin)
+
+    exclusive=defaultdict(list)
+    for xin in freq_dict:
+        freq=freq_dict[xin]
+        if freq>1:
+            print (xin, to_number[xin])
+        else:
+            num=to_number[xin][0]
+            #print (num)
+            exclusive[num].append(xin)
+    print ('now exclusive units')
+    for xin in exclusive:
+        print (xin, len(exclusive[xin])) 
 
     hookF=[Hook(layer [1]) for layer in list(model._modules.items())]
 
     
     # Let's test how this association is predictive of the test set
 
-    
+    layer_sel=2
     data_wm=[]
     for xin in [layer_sel]:
         wm=torch.load('wm_'+str(xin)+'.pt',map_location=lambda storage, loc: storage)
@@ -246,99 +261,39 @@ def main():
 
 
 
-    pred_n=test(args, model, device, test_loader, hookF)
+    test(args, model, device, test_loader, hookF)
 
     roV=intermediate_output[layer_sel]
-    print (roV.size())
     for data, target in test_loader:
         labels_=target
         cog.foward(roV)
         pred=cog.pred.long()
     #pred=cog.pred.long().cpu().numpy()
-
-
     
-
-
-    
-
-    total_1=0
-    total_2=0
-    total_3=0
-    total_4=0
-    total_5=0 
-    cons1=0
-    cons2=0
-    temp=0
-    corr=np.zeros((10,10))
-    mem=[]
-    print ('sel shape',sel.shape)
-    print (cog.image.size())       
-    for xi, xin in enumerate(pred_n):
+    for xi, xin in enumerate(pred[:20]):
         cls=xin.item()
-        label_t=labels_[xi].long().item()
+        
         v2=cog.image[:,xi]
-       
-        idx=torch.argsort(v2).cpu().numpy()
-        idx_mem=hub[cls][:5]
-        mem.append(np.dot(v2.cpu().numpy()[idx_mem],sel[idx_mem,xin]))
-        idx=np.flip(idx,0)[:3]
-        tar=sel[idx,:]
-        temp_v=np.zeros(10)
-        for zin in idx:
-            temp_v=temp_v+sel[zin,:]*v2[zin].item()
-        
-        #print (temp_v)
-        #tar=sel[idx,:]
-        #idx3=cog.labels[idx].long().item()
-        idx2=np.argmax(temp_v)
-        idx3=np.argsort(temp_v)
-        idx3=np.flip(idx3,0)[:5]
-        sum_v=np.sum(np.exp(temp_v))
-        #print (xi, idx, cls, idx3, idx2)
-        # cls: prediction, idx2: max from association, idx3, label from truth, idx_truth: ground truth
-        if cls==idx2:
-            total_1=total_1+1
-        if label_t==cls:
-            total_2=total_2+1
-
-        if label_t==idx2:
-            total_3=total_3+1
-
-        if label_t!=cls:
-            temp=temp+1
-            if cls==idx2:
-                total_4=total_4+1
-        else:
-            temp=temp+1
-            if cls==idx2:
-                total_5=total_5+1
-       
-        if cls in idx3:
-            cons1=cons1+1
-        if label_t in idx3:
-            cons2=cons2+1
-        for c1 in idx3:
-            if c1==cls:
-                for c2 in idx3:
-                    if c1!=c2:
-                        corr[c1,c2]=corr[c1,c2]+np.exp(temp_v[c2])/sum_v
-
-    max_v=np.amax(corr)
-    #corr=corr/500.0         
-    print (total_1,total_2,total_3)
-    print ('cons1',cons1,'cons2',cons2)
-    pylab.imshow(corr,cmap='jet', vmax=125.0)
-    pylab.colorbar() 
-           
+        storage=[]
+        for yin in range(10):
+            v1=act_map[:,yin]
             
-        
-    mem=np.array(mem)
-    np.savetxt('mem_'+str(layer_sel)+'.txt',mem)
+            storage.append(torch.dot(v1,v2)) #/(v1.norm()*v2.norm()))
+        storage=np.array(storage)
+        print (xin, np.argmax(storage))
+            #print (v2[:10])
+   
+    
+    #print (cog.image.size())
+    #print (cog.image[:10,1]) 
+
+    #       correlations[xin,yin]=correlations[xin,yin]+torch.dot(v1,v2)
+    #correlations=correlations
+    #np.savetxt('test.txt',correlations)
+    #del intermediate_output
     torch.cuda.empty_cache() 
-    del cog, roV
-    pylab.savefig('L'+str(layer_sel)+'.png')   
-    pylab.show()
+    del cog, roV   
+
 
 
     
