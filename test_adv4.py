@@ -332,12 +332,7 @@ def main():
     values=np.array(values)
     print ('mean:',np.mean(values))
                     
-                       
-    
-   
-        
-      
-        
+ 
         
 
 if __name__ == '__main__':
