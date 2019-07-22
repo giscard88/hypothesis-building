@@ -149,9 +149,9 @@ def main():
     
     
 
-
+    eps_sel=5.0
     adversary = LinfPGDAttack(
-    model, loss_fn=nn.CrossEntropyLoss(reduction="sum"), eps=0.3,
+    model, loss_fn=nn.CrossEntropyLoss(reduction="sum"), eps=eps_sel,
     nb_iter=40, eps_iter=0.01, rand_init=True, clip_min=0.0, clip_max=1.0,
     targeted=False)
 
@@ -163,8 +163,8 @@ def main():
         labels_=labels_.to(device)
 
     adv_untargeted = adversary.perturb(data, labels_)
-    torch.save(adv_untargeted, 'adv_input.pt')
-    torch.save(labels_,'adv_label.pt')
+    torch.save(adv_untargeted, 'LinfPGDAttack/adv_input_'+str(eps_sel)+'.pt')
+    torch.save(labels_,'LinfPGDAttack/adv_label_'+str(eps_sel)+'.pt')
 
     
 
