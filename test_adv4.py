@@ -330,9 +330,14 @@ def main():
 
     print (layer_corr)
     values=np.array(values)
-    print ('mean:',np.mean(values))
+    print ('mean:',np.mean(values), np.std(values))
                     
- 
+                       
+    
+   
+        
+      
+        
         
 
 if __name__ == '__main__':
