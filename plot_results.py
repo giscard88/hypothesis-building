@@ -1,7 +1,7 @@
 import json
 import numpy as np
 import pylab
-
+from sklearn.metrics import roc_auc_score, roc_curve
 
 fp=open('layer-'+'adv_.json','r')
 adv_data=json.load(fp)
@@ -30,11 +30,23 @@ for pr in pre:
            
 norm=np.array(norm)
 adv=np.array(adv)
-diff=np.array(diff)
+#diff=np.array(diff)
 
 norm_group=np.mean(norm,0)
 adv_group=np.mean(adv,0)
+y_true=[]
+y_pred=[]
+for xi, xin in enumerate(adv_group):
+    y_pred.append(xin)
+    y_true.append(0)
+    y_pred.append(norm_group[xi])
+    y_true.append(1)
 
+y_pred=np.array(y_pred)
+y_true=np.array(y_true)
+
+print ('roc',roc_auc_score(y_true, y_pred))
+    
 norm_h,norm_edges=np.histogram(norm_group)
 adv_h,adv_edges=np.histogram(adv_group)
 pylab.figure(1)
@@ -42,10 +54,13 @@ pylab.plot(norm_h,label='norm')
 pylab.plot(adv_h,label='adv')
 pylab.legend()
 
-pylab.figure(2)
-pylab.plot(diff)
+fpr, tpr, thresholds = roc_curve(y_true, y_pred)
 
-print (len(np.where(diff<0)[0]), 'out of', len(diff))
+pylab.figure(2)
+pylab.plot(fpr, tpr, lw=2)
+
+
+
 
 pylab.show()
     

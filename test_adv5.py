@@ -236,7 +236,7 @@ def main():
 
 
     adversary = LinfPGDAttack(
-    model, loss_fn=nn.CrossEntropyLoss(reduction="sum"), eps=1.0,
+    model, loss_fn=nn.CrossEntropyLoss(reduction="sum"), eps=0.7,
     nb_iter=40, eps_iter=0.01, rand_init=True, clip_min=0.0, clip_max=1.0,
     targeted=False)
 
