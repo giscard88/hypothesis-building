@@ -43,8 +43,13 @@ def main():
     device = torch.device("cuda" if use_cuda else "cpu")
     kwargs = {'num_workers': 1 } if use_cuda else {}
 
+    if os.path.exists('/local2'):
+        dr_t='local2/data'
+    else:
+        dr_t='/home/jung/hypothesis/data'
+
     test_loader = torch.utils.data.DataLoader(
-        datasets.MNIST('/home/jung/hypothesis/data', train=False, transform=transforms.Compose([
+        datasets.MNIST(dr_t, train=False, transform=transforms.Compose([
                            transforms.ToTensor(),
                            transforms.Normalize((0.1307,), (0.3081,))
                        ])),
