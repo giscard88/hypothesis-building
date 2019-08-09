@@ -138,7 +138,7 @@ def prediction(args, model, device, test_loader,hookF):
     model.eval()
     test_loss = 0
     correct = 0
-    preds_=[]
+    
     ct=0
     with torch.no_grad():
         for data, target in test_loader:
@@ -147,10 +147,14 @@ def prediction(args, model, device, test_loader,hookF):
             test_loss += F.nll_loss(output, target, reduction='sum').item() # sum up batch loss
             pred = output.argmax(dim=1, keepdim=True) # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
-            ct=ct+1
+           
             print (ct)
-
-            preds_.append(pred.numpy())
+            if ct==0:
+                preds_=pred
+            else:
+                preds_=torch.cat((preds_,pred),0)
+            ct=ct+1
+            
     return preds_
 
 def test_adv(args, model, device, test_loader,hookF,adv_input):
@@ -217,7 +221,7 @@ class make_association:
         self.pre=self.pre/0.01
         self.pre=self.pre.exp()
         
-        delta=torch.matmul(self.pre,self.target_m)
+        delta=torch.matmul(self.pre.to(self.device),self.target_m.to(self.device))
         self.map=delta
 
 

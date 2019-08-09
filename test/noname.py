@@ -299,9 +299,11 @@ class CogMem_load:
     def __init__(self,wm, labels_):
         self.wm=wm
         self.labels=torch.Tensor(labels_)
-    def foward(self, roV):
+
+    def forward(self, roV):
         size=roV.size()
         flag_single=False
+        print ('roV',size)
         if len(size)==1:
             roV=roV.view(-1,self.inS)
             norm=torch.norm(roV)

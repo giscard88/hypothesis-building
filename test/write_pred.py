@@ -88,8 +88,9 @@ def main():
     
     pred_n=prediction(args, model, device, train_loader, hookF)
     
-    pred_n=np.array(pred_n)
-    np.savetxt('prediction_resnet.txt',pred_n) 
+    #pred_n=np.array(pred_n)
+    #pred_n=torch.from_numpy(pred_n)
+    torch.save(pred_n,'prediction_resnet.pt') 
           
     
         
