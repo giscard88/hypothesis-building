@@ -60,7 +60,7 @@ def main():
     
     layer_num=5
     image_num=500
-    pred_n=torch.load('prediction_resnet.pt')
+    pred_n=torch.load('prediction_resnet.pt',map_location=lambda storage, loc: storage)
     print (pred_n)
     
     for ln in [0]:
