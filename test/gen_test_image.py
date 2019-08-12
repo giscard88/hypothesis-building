@@ -25,7 +25,7 @@ def main():
     parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
     parser.add_argument('--batch-size', type=int, default=100, metavar='N',
                         help='input batch size for training (default: 60000)')
-    parser.add_argument('--test-batch-size', type=int, default=10000, metavar='N',
+    parser.add_argument('--test-batch-size', type=int, default=100, metavar='N',
                         help='input batch size for testing (default: 1000)')
     parser.add_argument('--epochs', type=int, default=1, metavar='N',
                         help='number of epochs to train (default: 10)')
@@ -69,7 +69,7 @@ def main():
             transforms.ToTensor(),
             normalize
         ])),
-        batch_size=10000, shuffle=False,**kwargs)
+        batch_size=args.test_batch_size, shuffle=False,**kwargs)
 
     model=resnet44()
     model.to(device)
@@ -86,26 +86,27 @@ def main():
     model.load_state_dict(param_dict)
     hookF=[Hook(model.conv1), Hook(model.layer1),Hook(model.layer2),Hook(model.layer3),Hook(model.linear)]
     
-    pred_n=prediction(args, model, device, train_loader, hookF)
-    
-    #pred_n=np.array(pred_n)
-    #pred_n=torch.from_numpy(pred_n)
-    torch.save(pred_n,'prediction_resnet.pt') 
+    #optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
 
-    pred_n=prediction(args, model, device, test_loader, hookF)
-    
-    #pred_n=np.array(pred_n)
-    #pred_n=torch.from_numpy(pred_n)
-    torch.save(pred_n,'test_prediction_resnet.pt') 
-          
-    
-        
-        
-      
-        
-        
 
+    #hookF=[Hook(layer [1]) for layer in list(model._modules.items())]
+    #test=[layer[1] for layer in list(model._modules.items())]
+    #for layer in list(model._modules.items()):
+    #for xin in param_dict:
+    #    print (xin)
+    
+    scan_test_export(args, model, device, test_loader, hookF)
+   
+    #for hook in hookF:
+    #    print (hook.output.size())
+
+    #for xin in model._modules.items():
+    #    print ((xin[1]).in_channels)
+       
 if __name__ == '__main__':
     main()
-    del intermediate_output
+    del internal
+
+
+
 

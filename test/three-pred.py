@@ -1,25 +1,48 @@
 from __future__ import print_function
-import argparse
+
+
+
+
+import time
+
+import torch
+import torch.nn as nn
+import torchvision.datasets as datasets
+
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+
 from torchvision import datasets, transforms
 from noname import *
 import numpy as np
 import json
+import os
 import pylab
-from numpy import linalg as LA
-from collections import defaultdict
-from Nets import *
 
-                   
+from Nets import *
+from resnet import *
+
+
+def load_test_image(sel_layer):
+    flag=True
+    for ba in range(100):
+        temp=torch.load('test_image/hook'+str(ba)+'_'+str(sel_layer)+'.th')
+        if flag:
+            im=temp
+            flag=False
+        else:
+            im=torch.cat((im,temp),0)
+    return im
+ 
+
 
 def main():
-
-
+    # Training settings
     parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
-    parser.add_argument('--batch-size', type=int, default=60000, metavar='N',
+    parser.add_argument('--batch-size', type=int, default=100, metavar='N',
                         help='input batch size for training (default: 60000)')
     parser.add_argument('--test-batch-size', type=int, default=10000, metavar='N',
                         help='input batch size for testing (default: 1000)')
@@ -43,73 +66,64 @@ def main():
 
     torch.manual_seed(args.seed)
 
+    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+
     device = torch.device("cuda" if use_cuda else "cpu")
-    kwargs = {'num_workers': 1 } if use_cuda else {}
+    kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
 
     if os.path.exists('/local2'):
         dr_t='local2/data'
     else:
         dr_t='/home/jung/hypothesis/data'
 
-    train_loader = torch.utils.data.DataLoader(
-        datasets.MNIST(dr_t, train=True, transform=transforms.Compose([
-                           transforms.ToTensor(),
-                           transforms.Normalize((0.1307,), (0.3081,))
-                       ])),
-        batch_size=60000, shuffle=False, **kwargs)
 
     test_loader = torch.utils.data.DataLoader(
-        datasets.MNIST(dr_t, train=False, transform=transforms.Compose([
-                           transforms.ToTensor(),
-                           transforms.Normalize((0.1307,), (0.3081,))
-                       ])),
-        batch_size=10000, shuffle=False, **kwargs)
+        datasets.CIFAR10(root='./data', train=False, transform=transforms.Compose([
+            transforms.ToTensor(),
+            normalize
+        ])),
+        batch_size=args.test_batch_size, shuffle=False,**kwargs)
 
-    strage=device
-    model=Net()
-    model.to(device)
-    checkpoint = torch.load('mnist_cnn.pt',map_location=lambda storage, loc: storage)
-    model.load_state_dict(checkpoint)
-
+   
 
     Associations=[]
-    for xin in range(4):
+    for xin in range(5):
         temp=torch.load('map_association_'+str(xin)+'.pt')
         Associations.append(temp)
    
-
-
+    pred_n=torch.load('test_prediction_resnet.pt',map_location=lambda storage, loc: storage) 
     
-
+    print (pred_n.size())
+    
+    for data, target in test_loader:   
+        labels=target
+    labels_=[]
+    for xi in labels:
+        temp_=np.zeros(10)
+        temp_[xi.item()]=1.0
+        labels_.append(temp_)
+    labels_=np.array(labels_)
+    print ('label.shape',labels_.shape)  
         
-
-    hookF=[Hook(layer [1]) for layer in list(model._modules.items())]
-
-    pred_n=test(args, model, device, test_loader, hookF)
-
-    
-    for ttin in range(4):
+    for ttin in range(5):
         layer_sel_=ttin
         act_map=Associations[layer_sel_]
         
 
-        roV=intermediate_output[layer_sel_]
+        roV=roV=load_test_image(layer_sel_)
 
-        sel=Associations[layer_sel_]
-        sel=sel.numpy()
+        sel=Associations[layer_sel_].map
+        sel=sel.cpu().numpy()
 
         wm=torch.load('wm_'+str(layer_sel_)+'.pt',map_location=lambda storage, loc: storage)
         
-        fp=open('labels_'+str(layer_sel_)+'.json') # labels for wm i.e., the labels of the test set.
-        label=json.load(fp)
-        fp.close()
-        cog=CogMem_load(wm,label) 
+        wm=wm.to(device)      
+        cog=CogMem_load(wm,labels_) 
+        #cog=CogMem_load(wm,label)
 
 
-
-        for data, target in test_loader:   
-            labels_=target
-            cog.foward(roV)
+        
+        cog.forward(roV)
         pred=cog.pred.long()
         #pred=cog.pred.long().cpu().numpy()
 
@@ -126,15 +140,15 @@ def main():
         temp=0
         corr=np.zeros((10,10))
         mem=[]
-        print ('sel shape',sel.shape)
-        print (cog.image.size())       
+        #print ('sel shape',sel.shape)
+        #print (cog.image.size())       
         for xi, xin in enumerate(pred_n):
             cls=xin.item()
-            label_t=labels_[xi].long().item()
+            label_t=labels[xi].long().item()
             v2=cog.image[:,xi]
             mem.append(v2.cpu().numpy())
             idx=torch.argsort(v2).cpu().numpy()
-            idx=np.flip(idx,0)[:3]
+            idx=np.flip(idx,0)[:8]
    
             temp_v=np.zeros(10)
             for zin in idx:
@@ -177,7 +191,7 @@ def main():
 
         max_v=np.amax(corr)
         #corr=corr/500.0         
-        print (total_1,total_2,total_3)
+        print (layer_sel_, total_1,total_2,total_3)
         print ('cons1',cons1,'cons2',cons2)
         pylab.figure(ttin+1)
         pylab.imshow(corr,cmap='jet', vmax=125.0)
@@ -192,7 +206,7 @@ def main():
           
     pylab.show()
 
-
+    
     
     
     

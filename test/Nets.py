@@ -92,6 +92,32 @@ def scan_train_export(args, model, device, loader,hookF):
         test_loss, correct, len(loader.dataset),
         100. * correct / len(loader.dataset)))
 
+def scan_test_export(args, model, device, loader,hookF):
+    model.eval()
+    test_loss = 0
+    ct = 0
+    correct = 0
+    with torch.no_grad():
+        for data, target in loader:
+            data, target = data.to(device), target.to(device)
+            output = model(data)
+            test_loss += F.nll_loss(output, target, reduction='sum').item() # sum up batch loss
+            pred = output.argmax(dim=1, keepdim=True) # get the index of the max log-probability
+            correct += pred.eq(target.view_as(pred)).sum().item()
+            
+            for h, hook in enumerate(hookF):
+                a_int=hook.output
+                a_size=a_int.size()
+                a_int=a_int.view(a_size[0],-1)
+                torch.save(a_int,'test_image/hook'+str(ct)+'_'+str(h)+'.th')
+            ct=ct+1
+
+    test_loss /= len(loader.dataset)
+
+    print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+        test_loss, correct, len(loader.dataset),
+        100. * correct / len(loader.dataset)))
+
                 
 
 class Hook():

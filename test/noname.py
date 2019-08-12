@@ -299,7 +299,7 @@ class CogMem_load:
     def __init__(self,wm, labels_):
         self.wm=wm
         self.labels=torch.Tensor(labels_)
-
+        #self.labels=labels_
     def forward(self, roV):
         size=roV.size()
         flag_single=False

@@ -24,7 +24,7 @@ def main():
 
     image_num=500 # the number of splited intermediate images
     #layer_num=1  # the layer # of monitoring  [conv, layer1, layer2, layer3, linear]
-    for ln in [4]: #range(layer_num):
+    for ln in [0]: #range(layer_num):
         flag_init=True
         for im in range(image_num):
             print (ln,im)
