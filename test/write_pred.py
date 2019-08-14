@@ -69,7 +69,7 @@ def main():
             transforms.ToTensor(),
             normalize
         ])),
-        batch_size=10000, shuffle=False,**kwargs)
+        batch_size=100, shuffle=False,**kwargs)
 
     model=resnet44()
     model.to(device)
@@ -88,8 +88,8 @@ def main():
     
     pred_n=prediction(args, model, device, train_loader, hookF)
     
-    #pred_n=np.array(pred_n)
-    #pred_n=torch.from_numpy(pred_n)
+    pred_n=np.array(pred_n)
+    pred_n=torch.from_numpy(pred_n)
     torch.save(pred_n,'prediction_resnet.pt') 
 
     pred_n=prediction(args, model, device, test_loader, hookF)

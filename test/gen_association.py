@@ -63,7 +63,7 @@ def main():
     pred_n=torch.load('prediction_resnet.pt',map_location=lambda storage, loc: storage)
     print (pred_n)
     
-    for ln in [4]:
+    for ln in [2]:
         wm=torch.load('wm_'+str(ln)+'.pt',map_location=lambda storage, loc: storage)
         
         cog=CogMem_load(wm.to(device),label) 

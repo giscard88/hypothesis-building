@@ -29,7 +29,7 @@ from resnet import *
 def load_test_image(sel_layer):
     flag=True
     for ba in range(100):
-        temp=torch.load('test_image/hook'+str(ba)+'_'+str(sel_layer)+'.th')
+        temp=torch.load('test_image/hook'+str(ba)+'_'+str(sel_layer)+'.th',map_location=lambda storage, loc: storage)
         if flag:
             im=temp
             flag=False
@@ -88,7 +88,7 @@ def main():
 
     Associations=[]
     for xin in range(5):
-        temp=torch.load('map_association_'+str(xin)+'.pt')
+        temp=torch.load('map_association_'+str(xin)+'.pt',map_location=lambda storage, loc: storage)
         Associations.append(temp)
    
     pred_n=torch.load('test_prediction_resnet.pt',map_location=lambda storage, loc: storage) 
@@ -105,12 +105,12 @@ def main():
     labels_=np.array(labels_)
     print ('label.shape',labels_.shape)  
         
-    for ttin in range(5):
+    for ttin in [2]:
         layer_sel_=ttin
         act_map=Associations[layer_sel_]
         
 
-        roV=roV=load_test_image(layer_sel_)
+        roV=load_test_image(layer_sel_)
 
         sel=Associations[layer_sel_].map
         sel=sel.cpu().numpy()
