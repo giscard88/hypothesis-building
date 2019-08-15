@@ -5,7 +5,7 @@ import time
 import torch
 import torch.nn as nn
 import torchvision.datasets as datasets
-
+import pylab
 
 import torch
 import torch.nn as nn
@@ -90,7 +90,7 @@ def main():
         thresholds_=threshold_4
     
    
-    act_map=torch.load('map_association_'+str(xin)+'.pt',map_location=lambda storage, loc: storage)
+    
     
    
     pred_n=torch.load('test_prediction_resnet.pt',map_location=lambda storage, loc: storage) 
@@ -112,14 +112,15 @@ def main():
     else:
         os.mkdir("confusion")
    
-        
+    results={}    
     for th in thresholds_:
         layer_sel_=coglayer
-        
+        temp_dict={}
 
         roV=load_test_image(layer_sel_)
-
-        sel=act_map[layer_sel_].map
+        roV=roV.to(device)
+        act_map=torch.load('coglayer/map_association_'+str(coglayer)+'_'+str(th)+'.pt',map_location=lambda storage, loc: storage)
+        sel=act_map.map
         sel=sel.cpu().numpy()
 
         wm=torch.load('coglayer/wm_'+str(layer_sel_)+'_'+str(th)+'.pt',map_location=lambda storage, loc: storage)
@@ -205,13 +206,16 @@ def main():
         pylab.colorbar() 
         pylab.savefig('confusion/L'+str(layer_sel_)+'_'+str(th)+'.png')    
             
-        
+        temp_dict={'max_pred':total_1, 'ref_accuracy':total_2, 'max_accuracy':total_3,'consist_pred':cons1, 'consist_accuracy':cons2, 'cog_size':wm.size()}
         #mem=np.array(mem)
         #np.savetxt('mem_'+str(layer_sel_)+'.txt',mem)
         torch.cuda.empty_cache() 
-        del cog, roV
-          
-    pylab.show()
+        del cog, roV, sel, wm, act_map
+        results[str(th)]=temp_dict
+    fp=open('confusion/prediction'+str(layer_sel_)+'.png','w')
+    json.dump(results,fp)
+    fp.close  
+    #pylab.show()
 
     
     
