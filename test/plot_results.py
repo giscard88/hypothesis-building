@@ -3,11 +3,11 @@ import numpy as np
 import pylab
 from sklearn.metrics import roc_auc_score, roc_curve
 
-fp=open('layer-'+'adv_.json','r')
+fp=open('correlations/layer-adv_4-0.1.json','r')
 adv_data=json.load(fp)
 fp.close()
 
-fp=open('layer-'+'norm_.json','r')
+fp=open('correlations/layer-norm_4-0.1.json','r')
 norm_data=json.load(fp)
 fp.close()
 
@@ -16,16 +16,20 @@ adv=[]
 
 norm_group=[]
 adv_group=[]
-pre=['0','1']
-post=['3']
+pre=['1','2','3']
+post=['2','3','4']
 
 diff=[]
 for pr in pre:
     for po in post:
-        if pr+'_'+po in norm_data:
-            norm.append(norm_data[pr+'_'+po])
-            adv.append(adv_data[pr+'_'+po])
-            diff.extend(list(np.array(norm_data[pr+'_'+po])-np.array(adv_data[pr+'_'+po])))
+        if pr==po:
+            pass
+        else:
+
+            if pr+'_'+po in norm_data:
+                norm.append(norm_data[pr+'_'+po])
+                adv.append(adv_data[pr+'_'+po])
+                diff.extend(list(np.array(norm_data[pr+'_'+po])-np.array(adv_data[pr+'_'+po])))
     
            
 norm=np.array(norm)
@@ -50,8 +54,8 @@ print ('roc',roc_auc_score(y_true, y_pred))
 norm_h,norm_edges=np.histogram(norm_group)
 adv_h,adv_edges=np.histogram(adv_group)
 pylab.figure(1)
-pylab.plot(norm_h,label='norm')
-pylab.plot(adv_h,label='adv')
+pylab.plot(norm_edges[1:],norm_h,label='norm')
+pylab.plot(adv_edges[1:],adv_h,label='adv')
 pylab.legend()
 
 fpr, tpr, thresholds = roc_curve(y_true, y_pred)

@@ -296,9 +296,12 @@ class CogMem_label_torch:
 
 
 class CogMem_load:
-    def __init__(self,wm, labels_):
+    def __init__(self,wm, labels_=None):
         self.wm=wm
-        self.labels=torch.Tensor(labels_)
+        if labels_==None:
+            self.labels_=None
+        else:
+            self.labels=torch.Tensor(labels_)
         #self.labels=labels_
     def forward(self, roV):
         size=roV.size()
@@ -324,8 +327,11 @@ class CogMem_load:
             roV_T=torch.transpose(roV,0,1)
         print (self.wm.size(),roV_T.size())
         self.image=torch.matmul(self.wm,roV_T)
-        self.ma=torch.argmax(self.image,dim=0)
-        self.pred=self.labels[self.ma]
+        if self.labels_==None:
+            self.pred=None
+        else:
+            self.ma=torch.argmax(self.image,dim=0)
+            self.pred=self.labels[self.ma]
 
    
 
