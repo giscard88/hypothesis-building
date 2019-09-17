@@ -11,6 +11,9 @@ Due to the size of intermediate layers, the codes were tweaked to work step-by-s
 5. gen_association.py: generate correlation-like association between cognitive memeory of each layer and prediction of ResNet
 6. three-pred.py: test how well cognitive memory of each layer can predict the answers of ResNet.
 7. load_image_layer.py: calculates cognitive memory for a selective layer over multiple threshold values. 
+8. gen_adv.py: generates adversarial examples
+9. adv_correlation.py: estimates the consistency between layers
+10. plot_results.py: plots consistency values and estimates AUROC.
 
 
 
