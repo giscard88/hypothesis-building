@@ -42,8 +42,7 @@ def main():
   
     parser.add_argument('--no-cuda', action='store_true', default=False,
                         help='disables CUDA training')
-    parser.add_argument('--seed', type=int, default=1, metavar='S',
-                        help='random seed (default: 1)')
+
   
     parser.add_argument('--layer', type=int, default=0, metavar='N',
                         help='select a layer 0-4, which represents the first CNN, 3 composite layers and the final FC')
@@ -57,17 +56,14 @@ def main():
 
     torch.manual_seed(args.seed)
 
-    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-
-    device = torch.device("cuda" if use_cuda else "cpu")
-    kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
-
-    test_loader = torch.utils.data.DataLoader(
-        datasets.CIFAR10(root='./data', train=False, transform=transforms.Compose([
-            transforms.ToTensor(),
-            normalize
-        ])),
-        batch_size=10000, shuffle=False,**kwargs)
+    dr_t='./data'
+    train_loader = torch.utils.data.DataLoader(
+        datasets.MNIST(dr_t, train=True, download=True,
+                       transform=transforms.Compose([
+                           transforms.ToTensor(),
+                           transforms.Normalize((0.1307,), (0.3081,))
+                       ])),
+        batch_size=60000, shuffle=False, **kwargs)
 
 
     coglayer=args.layer
@@ -93,7 +89,7 @@ def main():
     
     
    
-    pred_n=torch.load('test_prediction_resnet.pt',map_location=lambda storage, loc: storage) 
+    pred_n=torch.load('test_prediction_CNN.pt',map_location=lambda storage, loc: storage) 
     
     print (pred_n.size())
     

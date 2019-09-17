@@ -22,26 +22,28 @@ from resnet import *
 
 def main():
 
-    parser = argparse.ArgumentParser(description='generation association between cog mem and prediction of resnet')
+    parser = argparse.ArgumentParser(description='generation association between cog mem and prediction of CNN trained with MNIST')
   
     parser.add_argument('--no-cuda', action='store_true', default=False,
                         help='disables CUDA training')
-    parser.add_argument('--seed', type=int, default=1, metavar='S',
-                        help='random seed (default: 1)')
   
     parser.add_argument('--layer', type=int, default=0, metavar='N',
-                        help='select a layer 0-4, which represents the first CNN, 3 composite layers and the final FC')
+                        help='select a layer 0-3, which represents 2 CNs and 2 FCs')
     args = parser.parse_args()
     use_cuda = not args.no_cuda and torch.cuda.is_available()
-    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+
     device = torch.device("cuda" if use_cuda else "cpu")
     kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {} 
+    dr_t='./data'
     train_loader = torch.utils.data.DataLoader(
-        datasets.CIFAR10(root='./data', train=True, transform=transforms.Compose([
-            transforms.ToTensor(),
-            normalize
-        ])),
-        batch_size=50000, shuffle=False,**kwargs)   
+        datasets.MNIST(dr_t, train=True, download=True,
+                       transform=transforms.Compose([
+                           transforms.ToTensor(),
+                           transforms.Normalize((0.1307,), (0.3081,))
+                       ])),
+        batch_size=60000, shuffle=False, **kwargs)
+
+   
     for data, target in train_loader:
         label=target.numpy()
     
@@ -65,9 +67,9 @@ def main():
         thresholds_=threshold_4  
 
     
-    layer_num=5
-    image_num=500
-    pred_n=torch.load('prediction_resnet.pt',map_location=lambda storage, loc: storage)
+    layer_num=4
+    image_num=60000
+    pred_n=torch.load('prediction_CNN.pt',map_location=lambda storage, loc: storage)
     print (pred_n)
     
     for th in thresholds_:

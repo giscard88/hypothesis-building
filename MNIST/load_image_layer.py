@@ -22,7 +22,7 @@ from resnet import *
 parser = argparse.ArgumentParser(description='construct the cognitive memory')
 
 parser.add_argument('--layer', type=int, default=0, metavar='N',
-                        help='select a layer 0-4, which represents the first CNN, 3 composite layers and the final FC')
+                        help='select a layer 0-3, which represents 2 CNs amd 2 FCs')
 
 args = parser.parse_args()
 
@@ -40,7 +40,7 @@ def main():
     threshold_2=[0.48, 0.5] #[0.52, 0.54, 0.56, 0.58, 0.6, 0.62, 0.64, 0.66]
     threshold_3=[0.5,  0.52, 0.54, 0.56, 0.58, 0.6, 0.62, 0.64]
     threshold_4=[0.8,  0.82, 0.84, 0.86, 0.88, 0.9, 0.92, 0.94]
-    image_num=500 # the number of splited intermediate images
+    image_num=60000 # the number of splited intermediate images
     #layer_num=1  # the layer # of monitoring  [conv, layer1, layer2, layer3, linear]
     ln=args.layer
     if ln==0:

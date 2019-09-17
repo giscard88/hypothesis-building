@@ -23,8 +23,8 @@ from resnet import *
 def main():
     # Training settings
     parser = argparse.ArgumentParser(description='PyTorch MNIST Example')
-
-
+  
+ 
     parser.add_argument('--no-cuda', action='store_true', default=False,
                         help='disables CUDA training')
 
@@ -32,6 +32,7 @@ def main():
     use_cuda = not args.no_cuda and torch.cuda.is_available()
 
     torch.manual_seed(args.seed)
+
 
 
     device = torch.device("cuda" if use_cuda else "cpu")
@@ -45,12 +46,6 @@ def main():
                            transforms.Normalize((0.1307,), (0.3081,))
                        ])),
         batch_size=60000, shuffle=False, **kwargs)
-    test_loader = torch.utils.data.DataLoader(
-        datasets.MNIST(dr_t, train=False, transform=transforms.Compose([
-                           transforms.ToTensor(),
-                           transforms.Normalize((0.1307,), (0.3081,))
-                       ])),
-        batch_size=10000, shuffle=False, **kwargs)
 
     model=Net()
     checkpoint = torch.load('pretrained_models/mnist_cnn.pt',map_location=lambda storage, loc: storage)
@@ -60,26 +55,27 @@ def main():
 
     hookF=[Hook(model.conv1), Hook(model.layer1),Hook(model.layer2),Hook(model.layer3),Hook(model.linear)]
     
-    pred_n=prediction(args, model, device, train_loader, hookF)
-    
-    #pred_n=np.array(pred_n)
-    #pred_n=torch.from_numpy(pred_n)
-    torch.save(pred_n,'prediction_CNN.pt') 
+    #optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
 
-    pred_n=prediction(args, model, device, test_loader, hookF)
-    
-    #pred_n=np.array(pred_n)
-    #pred_n=torch.from_numpy(pred_n)
-    torch.save(pred_n,'test_prediction_CNN.pt') 
-          
-    
-        
-        
-      
-        
-        
 
+    #hookF=[Hook(layer [1]) for layer in list(model._modules.items())]
+    #test=[layer[1] for layer in list(model._modules.items())]
+    #for layer in list(model._modules.items()):
+    #for xin in param_dict:
+    #    print (xin)
+    
+    scan_test_export(args, model, device, test_loader, hookF)
+   
+    #for hook in hookF:
+    #    print (hook.output.size())
+
+    #for xin in model._modules.items():
+    #    print ((xin[1]).in_channels)
+       
 if __name__ == '__main__':
     main()
-    del intermediate_output
+    del internal
+
+
+
 
