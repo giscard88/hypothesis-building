@@ -18,7 +18,7 @@ import json
 import os
 
 from Nets import *
-from resnet import *
+
 from advertorch.attacks import LinfPGDAttack
 
 
@@ -46,33 +46,25 @@ def main():
 
     torch.manual_seed(args.seed)
 
-    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    normalize = transforms.Normalize((0.1307,), (0.3081,))
 
     device = torch.device("cuda" if use_cuda else "cpu")
     kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
    
 
-
+    dr_t='./data'
     test_loader = torch.utils.data.DataLoader(
-        datasets.CIFAR10(root='./data', train=False, transform=transforms.Compose([
+        datasets.MNIST(dr_t, train=False, transform=transforms.Compose([
             transforms.ToTensor(),
             normalize
         ])),
         batch_size=200, shuffle=False,**kwargs)
 
-    model=resnet44()
+    model=Net()
+    checkpoint = torch.load('pretrained_models/mnist_cnn.pt',map_location=lambda storage, loc: storage)
+    model.load_state_dict(checkpoint)
+    
     model.to(device)
-
-    checkpoint = torch.load('pretrained_models/resnet44.th',map_location=lambda storage, loc: storage)
-    states=checkpoint['state_dict']
-    del checkpoint
-    param_dict={}
-
-
-    for pr in states:
-        param_dict[pr[7:]]=states[pr]
-
-    model.load_state_dict(param_dict)
     
     adversary = LinfPGDAttack(
     model, loss_fn=nn.CrossEntropyLoss(reduction="sum"), eps=float(args.eps),

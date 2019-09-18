@@ -16,8 +16,7 @@ from noname import *
 import numpy as np
 import json
 import os
-#from Nets import *
-from resnet import *
+from Nets import *
 
 
 
@@ -54,7 +53,7 @@ def main():
     args = parser.parse_args()
     use_cuda = not args.no_cuda and torch.cuda.is_available()
 
-    torch.manual_seed(args.seed)
+
 
     dr_t='./data'
     train_loader = torch.utils.data.DataLoader(
@@ -68,11 +67,10 @@ def main():
 
     coglayer=args.layer
     #threshold_={0:0.3,1:0.75,2:0.6,3:0.57, 4:0.88}
-    threshold_0=[0.18, 0.2,  0.22, 0.24, 0.26, 0.3,  0.32, 0.34]
-    threshold_1=[0.64, 0.66, 0.68, 0.70, 0.72, 0.74, 0.76, 0.78]
-    threshold_2=[0.48, 0.5,  0.52, 0.54, 0.56, 0.58, 0.6,  0.62]
-    threshold_3=[0.5,  0.52, 0.54, 0.56, 0.58, 0.6,  0.62, 0.64]
-    threshold_4=[0.8,  0.82, 0.84, 0.86, 0.88, 0.9,  0.92, 0.94]
+    threshold_0=[0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8] 
+    threshold_1=[0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9] 
+    threshold_2=[0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9]
+    threshold_3=[0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9]
 
     if coglayer==0:
         thresholds_=threshold_0
@@ -82,9 +80,7 @@ def main():
         thresholds_=threshold_2
     elif coglayer==3:
         thresholds_=threshold_3
-    elif coglayer==4:
-        thresholds_=threshold_4
-    
+
    
     
     
@@ -152,7 +148,7 @@ def main():
             v2=cog.image[:,xi]
             #mem.append(v2.cpu().numpy())
             idx=torch.argsort(v2).cpu().numpy()
-            idx=np.flip(idx,0)[:8]
+            idx=np.flip(idx,0)[:3]
    
             temp_v=np.zeros(10)
             for zin in idx:

@@ -18,15 +18,13 @@ import json
 import os
 
 from Nets import *
-from resnet import *
+
 from advertorch.attacks import LinfPGDAttack
 
-threshold_0=[0.18, 0.2,  0.22, 0.24, 0.26, 0.3,  0.32, 0.34]
-threshold_1=[0.64, 0.66, 0.68, 0.7,  0.72, 0.74, 0.76, 0.78]
-threshold_2=[0.48, 0.5,  0.52, 0.54, 0.56, 0.58, 0.6,  0.62]
-threshold_3=[0.5,  0.52, 0.54, 0.56, 0.58, 0.6,  0.62, 0.64]
-threshold_4=[0.8,  0.82, 0.84, 0.86, 0.88, 0.9,  0.92, 0.94]
-
+threshold_0=[0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8] 
+threshold_1=[0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9] 
+threshold_2=[0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9]
+threshold_3=[0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9]
 thresholds_=[threshold_0,threshold_1,threshold_2,threshold_3,threshold_4]
     
 
@@ -55,34 +53,21 @@ def main():
     print (args.norm)
 
 
-    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-
-    device = torch.device("cuda" if use_cuda else "cpu")
-    kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
-   
-
+    dr_t='./data'
 
     test_loader = torch.utils.data.DataLoader(
-        datasets.CIFAR10(root='./data', train=False, transform=transforms.Compose([
-            transforms.ToTensor(),
-            normalize
-        ])),
-        batch_size=200, shuffle=False,**kwargs)
+        datasets.MNIST(dr_t, train=False, transform=transforms.Compose([
+                           transforms.ToTensor(),
+                           transforms.Normalize((0.1307,), (0.3081,))
+                       ])),
+        batch_size=200, shuffle=False, **kwargs)
 
-    model=resnet44()
+    model=Net()
+    checkpoint = torch.load('pretrained_models/mnist_cnn.pt',map_location=lambda storage, loc: storage)
+    model.load_state_dict(checkpoint)
+    
     model.to(device)
-
-    checkpoint = torch.load('pretrained_models/resnet44.th',map_location=lambda storage, loc: storage)
-    states=checkpoint['state_dict']
-    del checkpoint
-    param_dict={}
-
-
-    for pr in states:
-        param_dict[pr[7:]]=states[pr]
-
-    model.load_state_dict(param_dict)
-    hookF=[Hook(model.conv1), Hook(model.layer1),Hook(model.layer2),Hook(model.layer3),Hook(model.linear)]
+    hookF=[Hook(layer [1]) for layer in list(model._modules.items())]
 
 
 
@@ -120,7 +105,7 @@ def main():
 
 
     activity_layer={}
-    for ttin in range(5):
+    for ttin in range(4):
         layer_sel_=ttin
 
         thres=thresholds_[ttin][args.threshold_n]
