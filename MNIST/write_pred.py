@@ -17,7 +17,7 @@ import numpy as np
 import json
 import os
 from Nets import *
-from resnet import *
+#from resnet import *
 
 
 def main():
@@ -31,7 +31,7 @@ def main():
     args = parser.parse_args()
     use_cuda = not args.no_cuda and torch.cuda.is_available()
 
-    torch.manual_seed(args.seed)
+
 
 
     device = torch.device("cuda" if use_cuda else "cpu")
@@ -58,7 +58,7 @@ def main():
     
     model.to(device)
 
-    hookF=[Hook(model.conv1), Hook(model.layer1),Hook(model.layer2),Hook(model.layer3),Hook(model.linear)]
+    hookF=[Hook(layer [1]) for layer in list(model._modules.items())]
     
     pred_n=prediction(args, model, device, train_loader, hookF)
     

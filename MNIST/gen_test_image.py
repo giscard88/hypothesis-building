@@ -17,7 +17,7 @@ import numpy as np
 import json
 import os
 from Nets import *
-from resnet import *
+
 
 
 def main():
@@ -31,7 +31,7 @@ def main():
     args = parser.parse_args()
     use_cuda = not args.no_cuda and torch.cuda.is_available()
 
-    torch.manual_seed(args.seed)
+
 
 
 
@@ -39,13 +39,13 @@ def main():
     kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
 
     dr_t='./data'
-    train_loader = torch.utils.data.DataLoader(
-        datasets.MNIST(dr_t, train=True, download=True,
+    test_loader = torch.utils.data.DataLoader(
+        datasets.MNIST(dr_t, train=False, download=True,
                        transform=transforms.Compose([
                            transforms.ToTensor(),
                            transforms.Normalize((0.1307,), (0.3081,))
                        ])),
-        batch_size=60000, shuffle=False, **kwargs)
+        batch_size=10000, shuffle=False, **kwargs)
 
     model=Net()
     checkpoint = torch.load('pretrained_models/mnist_cnn.pt',map_location=lambda storage, loc: storage)
@@ -53,7 +53,7 @@ def main():
     
     model.to(device)
 
-    hookF=[Hook(model.conv1), Hook(model.layer1),Hook(model.layer2),Hook(model.layer3),Hook(model.linear)]
+    hookF=[Hook(layer [1]) for layer in list(model._modules.items())]
     
     #optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
 

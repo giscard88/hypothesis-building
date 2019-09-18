@@ -17,7 +17,6 @@ import numpy as np
 import json
 import os
 from Nets import *
-from resnet import *
 
 
 def main():
@@ -30,7 +29,6 @@ def main():
     args = parser.parse_args()
     use_cuda = not args.no_cuda and torch.cuda.is_available()
 
-    torch.manual_seed(args.seed)
 
     device = torch.device("cuda" if use_cuda else "cpu")
     kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
@@ -56,6 +54,8 @@ def main():
     model.load_state_dict(checkpoint)
     
     model.to(device)
+
+    hookF=[Hook(layer [1]) for layer in list(model._modules.items())]
 
     scan_train_export(args, model, device, train_loader, hookF)
    
