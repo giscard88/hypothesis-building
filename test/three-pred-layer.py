@@ -126,13 +126,13 @@ def main():
         wm=torch.load('coglayer/wm_'+str(layer_sel_)+'_'+str(th)+'.pt',map_location=lambda storage, loc: storage)
         
         wm=wm.to(device)      
-        cog=CogMem_load(wm,labels_) 
+        cog=CogMem_load(wm) 
         #cog=CogMem_load(wm,label)
 
 
         
         cog.forward(roV)
-        pred=cog.pred.long()
+        #pred=cog.pred.long()
         #pred=cog.pred.long().cpu().numpy()
 
 
