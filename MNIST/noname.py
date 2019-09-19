@@ -298,11 +298,12 @@ class CogMem_label_torch:
 class CogMem_load:
     def __init__(self,wm, labels_=None):
         self.wm=wm
+       
         if labels_==None:
             self.labels_=None
         else:
-            self.labels=torch.Tensor(labels_)
-        #self.labels=labels_
+            self.labels_=torch.Tensor(labels_)
+        
     def forward(self, roV):
         size=roV.size()
         flag_single=False

@@ -20,11 +20,11 @@ from Nets import *
 
 
 
-
+split_factor=1
 
 def load_test_image(sel_layer):
     flag=True
-    for ba in range(100):
+    for ba in range(split_factor):
         temp=torch.load('test_image/hook'+str(ba)+'_'+str(sel_layer)+'.th',map_location=lambda storage, loc: storage)
         if flag:
             im=temp
@@ -44,7 +44,7 @@ def main():
 
   
     parser.add_argument('--layer', type=int, default=0, metavar='N',
-                        help='select a layer 0-4, which represents the first CNN, 3 composite layers and the final FC')
+                        help='select a layer 0-3, which represents 2 CNs and 2 FCs')
 
 #    parser.add_argument('--threshold', type=int, default=0, metavar='N',
 #                        help='threshold values used when cogmemry is generated')
@@ -53,16 +53,19 @@ def main():
     args = parser.parse_args()
     use_cuda = not args.no_cuda and torch.cuda.is_available()
 
+    device = torch.device("cuda" if use_cuda else "cpu")
+    kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {} 
+
 
 
     dr_t='./data'
-    train_loader = torch.utils.data.DataLoader(
-        datasets.MNIST(dr_t, train=True, download=True,
+    test_loader = torch.utils.data.DataLoader(
+        datasets.MNIST(dr_t, train=False, download=True,
                        transform=transforms.Compose([
                            transforms.ToTensor(),
                            transforms.Normalize((0.1307,), (0.3081,))
                        ])),
-        batch_size=60000, shuffle=False, **kwargs)
+        batch_size=10000, shuffle=False, **kwargs)
 
 
     coglayer=args.layer
@@ -118,13 +121,13 @@ def main():
         wm=torch.load('coglayer/wm_'+str(layer_sel_)+'_'+str(th)+'.pt',map_location=lambda storage, loc: storage)
         
         wm=wm.to(device)      
-        cog=CogMem_load(wm,labels_) 
+        cog=CogMem_load(wm) 
         #cog=CogMem_load(wm,label)
 
 
         
         cog.forward(roV)
-        pred=cog.pred.long()
+        #pred=cog.pred.long()
         #pred=cog.pred.long().cpu().numpy()
 
 

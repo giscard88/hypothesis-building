@@ -44,13 +44,13 @@ def main():
                            transforms.ToTensor(),
                            transforms.Normalize((0.1307,), (0.3081,))
                        ])),
-        batch_size=60000, shuffle=False, **kwargs)
+        batch_size=600, shuffle=False, **kwargs)
     test_loader = torch.utils.data.DataLoader(
         datasets.MNIST(dr_t, train=False, transform=transforms.Compose([
                            transforms.ToTensor(),
                            transforms.Normalize((0.1307,), (0.3081,))
                        ])),
-        batch_size=10000, shuffle=False, **kwargs)
+        batch_size=100, shuffle=False, **kwargs)
 
     model=Net()
     checkpoint = torch.load('pretrained_models/mnist_cnn.pt',map_location=lambda storage, loc: storage)

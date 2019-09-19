@@ -25,7 +25,7 @@ threshold_0=[0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8]
 threshold_1=[0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9] 
 threshold_2=[0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9]
 threshold_3=[0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9]
-thresholds_=[threshold_0,threshold_1,threshold_2,threshold_3,threshold_4]
+thresholds_=[threshold_0,threshold_1,threshold_2,threshold_3]
     
 
 
@@ -48,9 +48,11 @@ def main():
                         help='adversarial?')
     
     args = parser.parse_args()
-    
     use_cuda = not args.no_cuda and torch.cuda.is_available()
-    print (args.norm)
+
+
+    device = torch.device("cuda" if use_cuda else "cpu")
+    kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
 
 
     dr_t='./data'
@@ -97,7 +99,7 @@ def main():
 
     
     Associations=[]
-    for xin in range(5):
+    for xin in range(4):
         thres=thresholds_[xin][args.threshold_n]
         temp=torch.load('coglayer/map_association_'+str(xin)+'_'+str(thres)+'.pt',map_location=lambda storage, loc: storage)
         Associations.append(temp)

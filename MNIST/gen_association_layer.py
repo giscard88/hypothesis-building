@@ -49,8 +49,8 @@ def main():
     
     coglayer=args.layer
     #threshold_={0:0.3,1:0.75,2:0.6,3:0.57, 4:0.88}
-    threshold_0=[0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8] 
-    threshold_1=[0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9] 
+    threshold_0=[0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8] #for 0.8 requires more than 8GB memory for gpu.. so forced to use cpu
+    threshold_1=[0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9] #for 0.9 requires more than 8GB memory for gpu.. so forced to use cpu
     threshold_2=[0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9]
     threshold_3=[0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9]
 
@@ -67,7 +67,7 @@ def main():
     layer_num=4
     image_num=1
     pred_n=torch.load('prediction_CNN.pt',map_location=lambda storage, loc: storage)
-    print (pred_n)
+    #print (pred_n)
     
     for th in thresholds_:
         wm=torch.load('coglayer/wm_'+str(coglayer)+'_'+str(th)+'.pt',map_location=lambda storage, loc: storage)
