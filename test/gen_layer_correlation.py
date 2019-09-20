@@ -76,7 +76,7 @@ def main():
         ])),
         batch_size=200, shuffle=False,**kwargs)
 
-    set_=sel_lost[args.set]
+    set_=set_list[args.set]
     model=resnet44()
     model.to(device)
 
@@ -121,7 +121,7 @@ def main():
     
     Associations=[]
     for xin in range(5):
-        thres=thresholds_[xin][args.threshold_n]
+        thres=thresholds_[xin][set_[xin]]
         temp=torch.load('coglayer/map_association_'+str(xin)+'_'+str(thres)+'.pt',map_location=lambda storage, loc: storage)
         Associations.append(temp)
 
@@ -206,9 +206,12 @@ def main():
         pass
     else:
         os.mkdir("correlations")                
-
-    fp=open('correlations/layer-'+fn+'_'+str(args.set)+'-'+str(args.eps)+'.json','w')
-    json.dump(layer_corr,fp)
+    if fn=='adv':
+        fp=open('correlations/layer-'+fn+'_'+str(args.set)+'-'+str(args.eps)+'.json','w')
+        json.dump(layer_corr,fp)
+    else:
+        fp=open('correlations/layer-'+fn+'_'+str(args.set)+'.json','w')
+        json.dump(layer_corr,fp)
 
 
     
