@@ -2,9 +2,7 @@ import argparse
 import os
 import time
 
-import torch
-import torch.nn as nn
-import torchvision.datasets as datasets
+
 import pylab
 
 import torch
@@ -207,7 +205,7 @@ def main():
         torch.cuda.empty_cache() 
         del cog, roV, sel, wm, act_map
         results[str(th)]=temp_dict
-    fp=open('confusion/prediction'+str(layer_sel_)+'.png','w')
+    fp=open('confusion/prediction'+str(layer_sel_)+'.json','w')
     json.dump(results,fp)
     fp.close  
     #pylab.show()

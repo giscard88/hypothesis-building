@@ -3,11 +3,11 @@ import numpy as np
 import pylab
 from sklearn.metrics import roc_auc_score, roc_curve
 
-fp=open('correlations/layer-adv_4-3.0.json','r')
+fp=open('correlations/layer-adv_1-1.0.json','r')
 adv_data=json.load(fp)
 fp.close()
 
-fp=open('correlations/layer-norm_4-3.0.json','r')
+fp=open('correlations/layer-norm_1.json','r')
 norm_data=json.load(fp)
 fp.close()
 
@@ -16,7 +16,7 @@ adv=[]
 
 norm_group=[]
 adv_group=[]
-pre=['0','1']
+pre=['0','1','2']
 post=['2','3']
 
 diff=[]

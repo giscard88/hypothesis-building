@@ -4,6 +4,7 @@ import time
 
 
 
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -23,8 +24,18 @@ threshold_1=[0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9]
 threshold_2=[0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9]
 threshold_3=[0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9]
 thresholds_=[threshold_0,threshold_1,threshold_2,threshold_3]
-    
 
+
+    
+thres_set1=[3, 4, 5, 6]
+thres_set2=[4, 5, 6, 7]
+thres_set3=[3, 3, 3, 3]
+thres_set4=[3, 5, 6, 7]
+thres_set5=[4, 4, 5, 5]
+thres_set6=[4, 4, 6, 6]
+thres_set7=[4, 4, 7, 7]
+
+set_list=[thres_set1, thres_set2, thres_set3, thres_set4, thres_set5, thres_set6, thres_set7]
 
 def main():
     data=[]
@@ -35,8 +46,8 @@ def main():
     parser.add_argument('--no-cuda', action='store_true', default=False,
                         help='disables CUDA training')
 
-    parser.add_argument('--threshold_n', type=int, default=4,
-                        help='target threshold level')
+    parser.add_argument('--set', type=int, default=1,
+                        help='select the set of thresholds')
 
     parser.add_argument('--eps', default=0.3,
                         help='eps for LinfPGDAttack')
@@ -52,6 +63,12 @@ def main():
     kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
 
 
+    
+
+    device = torch.device("cuda" if use_cuda else "cpu")
+    kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
+ 
+
     dr_t='./data'
 
     test_loader = torch.utils.data.DataLoader(
@@ -61,13 +78,14 @@ def main():
                        ])),
         batch_size=200, shuffle=False, **kwargs)
 
+    set_=set_list[args.set]
+
     model=Net()
     checkpoint = torch.load('pretrained_models/mnist_cnn.pt',map_location=lambda storage, loc: storage)
     model.load_state_dict(checkpoint)
     
     model.to(device)
     hookF=[Hook(layer [1]) for layer in list(model._modules.items())]
-
 
 
     for data, target in test_loader:
@@ -97,7 +115,7 @@ def main():
     
     Associations=[]
     for xin in range(4):
-        thres=thresholds_[xin][args.threshold_n]
+        thres=thresholds_[xin][set_[xin]]
         temp=torch.load('coglayer/map_association_'+str(xin)+'_'+str(thres)+'.pt',map_location=lambda storage, loc: storage)
         Associations.append(temp)
 
@@ -106,8 +124,8 @@ def main():
     activity_layer={}
     for ttin in range(4):
         layer_sel_=ttin
-
-        thres=thresholds_[ttin][args.threshold_n]
+        
+        thres=thresholds_[ttin][set_[ttin]]
         roV=intermediate_output[layer_sel_]
 
         sel=Associations[layer_sel_].map
@@ -182,9 +200,12 @@ def main():
         pass
     else:
         os.mkdir("correlations")                
-
-    fp=open('correlations/layer-'+fn+'_'+str(args.threshold_n)+'-'+str(args.eps)+'.json','w')
-    json.dump(layer_corr,fp)
+    if fn=='adv':
+        fp=open('correlations/layer-'+fn+'_'+str(args.set)+'-'+str(args.eps)+'.json','w')
+        json.dump(layer_corr,fp)
+    else:
+        fp=open('correlations/layer-'+fn+'_'+str(args.set)+'.json','w')
+        json.dump(layer_corr,fp)
 
 
     
