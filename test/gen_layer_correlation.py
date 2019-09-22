@@ -31,9 +31,9 @@ thresholds_=[threshold_0,threshold_1,threshold_2,threshold_3,threshold_4]
     
 thres_set1=[3, 4, 5, 6, 7]
 thres_set2=[4, 4, 4, 4, 4]
-thres_set3=[3, 3, 3, 3, 3]
-thres_set4=[2, 3, 4, 5, 6]
-thres_set5=[4, 4, 5, 5, 5]
+thres_set3=[5, 5, 5, 5, 5]
+thres_set4=[6, 6, 6, 6, 6]
+thres_set5=[7, 7, 7, 7, 7]
 thres_set6=[4, 4, 6, 6, 6]
 thres_set7=[4, 4, 7, 7, 7]
 

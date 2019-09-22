@@ -2,10 +2,6 @@ import argparse
 import os
 import time
 
-import torch
-import torch.nn as nn
-import torchvision.datasets as datasets
-
 
 import torch
 import torch.nn as nn
