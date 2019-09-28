@@ -25,13 +25,13 @@ def gen_figs(sel_set, sel_threshold):
 
     norm_group=[]
     adv_group=[]
-    pre=['1','2','3']
-    post=['2','3','4']
+    pre=['0','1','2','3','4']
+    post=['0','1','2','3','4']
 
     diff=[]
     for pr in pre:
         for po in post:
-            if pr<=po:
+            if pr>=po:
                 pass
             else:
 
@@ -67,8 +67,8 @@ def gen_figs(sel_set, sel_threshold):
 
 
     
-    norm_h,norm_edges=np.histogram(norm_group)
-    adv_h,adv_edges=np.histogram(adv_group)
+    norm_h,norm_edges=np.histogram(norm_group,20)
+    adv_h,adv_edges=np.histogram(adv_group,20)
     pylab.figure(1)
     pylab.plot(norm_edges[1:],norm_h,label='norm')
     pylab.plot(adv_edges[1:],adv_h,label='adv')
@@ -77,11 +77,16 @@ def gen_figs(sel_set, sel_threshold):
 
 
     pylab.savefig('figs/consistency_'+sel_set+'_'+sel_threshold+'.eps')
-    fpr, tpr, thresholds = roc_curve(y_true, y_pred)
+    pylab.savefig('figs/consistency_'+sel_set+'_'+sel_threshold+'.png')
+    pylab.close()
 
+
+    fpr, tpr, thresholds = roc_curve(y_true, y_pred)
+    
     pylab.figure(2)
     pylab.plot(fpr, tpr, lw=2)
     pylab.savefig('figs/roc_'+sel_set+'_'+sel_threshold+'.eps')
+    pylab.savefig('figs/roc_'+sel_set+'_'+sel_threshold+'.png')
     pylab.close()
     return roc_auc_score(y_true, y_pred)
 

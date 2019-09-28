@@ -107,10 +107,10 @@ def main():
     labels_=np.array(labels_)
     print ('label.shape',labels_.shape) 
     
-    if os.path.exists("confusion"):
+    if os.path.exists("confusion_right"):
         pass
     else:
-        os.mkdir("confusion")
+        os.mkdir("confusion_right")
    
     results={}    
     for th in thresholds_:
@@ -191,12 +191,15 @@ def main():
                 cons1=cons1+1
             if label_t in idx3:
                 cons2=cons2+1
-            for c1 in idx3:
+            for c1 in [idx2]: #idx2 is the maximally activated output node
                 if c1==cls:
-                    for c2 in idx3:
-                        if c1!=c2:
-                            corr[c1,c2]=corr[c1,c2]+np.exp(temp_v[c2])/sum_v
-
+                    for c2 in range(10):
+                        #if c1!=c2:
+                        corr[c1,c2]=corr[c1,c2]+np.exp(temp_v[c1])*np.exp(temp_v[c2])/(sum_v*sum_v)
+        for c1 in range(10):
+            corr[c1,:]=corr[c1,:]/corr[c1,c1]
+        for c1 in range(10):
+            corr[c1,c1]=0
         max_v=np.amax(corr)
         #corr=corr/500.0         
         print (layer_sel_, total_1,total_2,total_3)
@@ -204,8 +207,8 @@ def main():
         #pylab.figure(ttin+1)
         pylab.imshow(corr,cmap='jet', vmax=max_v)
         pylab.colorbar() 
-        pylab.savefig('confusion/L'+str(layer_sel_)+'_'+str(th)+'.png')    
-        pylab.savefig('confusion/L'+str(layer_sel_)+'_'+str(th)+'.eps')
+        pylab.savefig('confusion_right/L'+str(layer_sel_)+'_'+str(th)+'.png')    
+        pylab.savefig('confusion_right/L'+str(layer_sel_)+'_'+str(th)+'.eps')
         pylab.close()    
         temp_dict={'max_pred':total_1, 'ref_accuracy':total_2, 'max_accuracy':total_3,'consist_pred':cons1, 'consist_accuracy':cons2, 'cog_size':wm.size()}
         #mem=np.array(mem)
@@ -213,7 +216,7 @@ def main():
         torch.cuda.empty_cache() 
         del cog, roV, sel, wm, act_map
         results[str(th)]=temp_dict
-    fp=open('confusion/prediction'+str(layer_sel_)+'.json','w')
+    fp=open('confusion_right/prediction'+str(layer_sel_)+'.json','w')
     json.dump(results,fp)
     fp.close  
     #pylab.show()
